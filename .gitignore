@@ -1,0 +1,7 @@
+#OS junk files
+[Tt]humbs.db
+*.DS_Store
+
+#shapefile.py, used for testing / running scripts.
+shapefile.py
+shapefile.pyc
