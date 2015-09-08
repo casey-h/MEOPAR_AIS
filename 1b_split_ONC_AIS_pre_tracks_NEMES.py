@@ -146,9 +146,9 @@ for data_index in {0,2}:
     
     print("Processing: " + out_filename_array[(data_index)])
 
-    with open(out_filename_array[data_index],'r') as in_parsed_sing_AIS_underway:
+    with open(out_filename_array[data_index],'r') as in_parsed_AIS_underway:
 
-        for line in in_parsed_sing_AIS_underway:
+        for line in in_parsed_AIS_underway:
             
             tokenizedline = line.split(',')
 

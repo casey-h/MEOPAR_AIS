@@ -99,7 +99,6 @@ if pointwriter.hasError() != QgsVectorFileWriter.NoError:
     
 # Iterate over the input files specified, parsing each.
 for infile_index in range(len(sys.argv) - 2):
-    
    
     # Attempt wildcard expansion on any input file specified.
     for in_filename in glob(sys.argv[(2 + infile_index)]):

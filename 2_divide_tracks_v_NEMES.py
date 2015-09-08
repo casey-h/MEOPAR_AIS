@@ -49,7 +49,8 @@ def haversine(lon1, lat1, lon2, lat2):
     return km 
 #########################################################
 
-# Establish a path separator.
+# Establish a path separator. 
+# CH - Ugly, detect this rather than set 
 # Linux
 #path_separator = "/"
 # Windows
@@ -62,16 +63,17 @@ if (len(sys.argv) < 3):
 outdirectory = sys.argv[1]
 
 # track_separation_time - Maximum time between sequential data points for which the points will be considered part of the same track segment. Measured in seconds. 180s = max separation between sequential points under any conditions according to AIS spec.
-# track_separation_time = 180
 # 2015-08-21 Identified 8 hours as maximum reasonable interval for SKBS area, considering 201108 and 201202
+# CH - Move this VV to arg to improve utility / transparency of operation
 track_separation_time = 3600 * 8
 
 # track_speed_threshold - Value for maximum speed considered feasible, measured in kilometres per second to avoid unit conversion. Used to identify when points are to be dropped from consideration because of excessive implied speed (suggesting bad position fix).
+# CH - Move this VV to arg to improve utility / transparency of operation
 track_speed_threshold = 0.0444444444
 
 for infile_index in range(len(sys.argv) - 2):
     
-    # Attempt wildcard expansion on any input file specified.
+    # Attempt wildcard expansion on any input file specified (Only (likely) req'd for Windows).
     for in_filename in glob(sys.argv[(2 + infile_index)]):
     
         print("Processing: " + in_filename)
@@ -167,7 +169,7 @@ for infile_index in range(len(sys.argv) - 2):
                         
                         # If the time interval between two successive points is less than the time interval 
                         # suggesting track separation (180s), and there is no change in navigation status, 
-                        # proceed with storing the current point for further  processing.
+                        # proceed with storing the current point for further processing.
                         if (timeval - prev_timeval < track_separation_time) and (navstatus == prev_navstatus):
                         
                             # Increment the track point counter.
@@ -232,7 +234,6 @@ for infile_index in range(len(sys.argv) - 2):
                             # only if the speed value calculated in the previous iteration suggested that it 
                             # was a valid part of the track.
                             if (track_point_counter > 2) and (spd_one < track_speed_threshold):
-                                #out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_shiptype + "," + prev_prev_shipname)
                                 out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_msgid + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_sog + "," + prev_prev_cog + "," + prev_prev_tr_hdg + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_pos_acc)
                                 
                             track_index += 1
@@ -294,8 +295,10 @@ for infile_index in range(len(sys.argv) - 2):
                                     spd_two = 999
                         
                             # If the calculated speed is below 0.5 knots, presume the vessel has effectively stopped, and divide the track.
-    # Note: This should probably be checked as well at the leading and terminating point pairs
-                            if(spd_one < 0.000257222222):    
+# CH Note: This should probably be checked as well at the leading and terminating point pairs
+# CH - Move this up, specify as arg.
+                            if(spd_one < 0.000257222222): 
+                            
                                 # If there have been at least 3 points considered, include the current position
                                 # only if the speed value calculated in the previous iteration suggested that it 
                                 # was a valid part of the track.
@@ -442,21 +445,16 @@ for infile_index in range(len(sys.argv) - 2):
                     # If the speed implied between the -2 and -1 positions is below the upper
                     # reasonable threshold (160kph), write out the -2 and -1 position data.
                     if(prev_prev_spd < track_speed_threshold):
-                    
-                        #out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_shiptype + "," + prev_prev_shipname)
+                   
                         out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_msgid + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_sog + "," + prev_prev_cog + "," + prev_prev_tr_hdg + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_pos_acc)
-                        
-                        #out_vessel_records.write("" + str(track_index) + "," + str(int(prev_timeval)) + "," + prev_datetimetoken + "," + prev_mmsi + "," + prev_navstatus + "," + str(prev_latitude) + "," + str(prev_longitude) + "," + prev_shiptype + "," + prev_shipname)
                         out_vessel_records.write("" + str(track_index) + "," + str(int(prev_timeval)) + "," + prev_datetimetoken + "," + prev_msgid + "," + prev_mmsi + "," + prev_navstatus + "," + prev_sog + "," + prev_cog + "," + prev_tr_hdg + "," + prev_latitude + "," + prev_longitude + "," + prev_pos_acc)
      
                     else:
                     
-                        #out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_shiptype + "," + prev_prev_shipname)
                         out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_msgid + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_sog + "," + prev_prev_cog + "," + prev_prev_tr_hdg + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_pos_acc)
                         
                 # If there is a significant time gap between the -2 and -1 points, output only the -2 position.
                 else:
-                        #out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_shiptype + "," + prev_prev_shipname)
                         out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_msgid + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_sog + "," + prev_prev_cog + "," + prev_prev_tr_hdg + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_pos_acc)
 
             out_vessel_records.close

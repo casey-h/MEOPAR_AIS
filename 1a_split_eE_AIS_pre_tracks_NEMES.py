@@ -76,9 +76,6 @@ for infile_index in range(len(sys.argv) - 3):
                 # Output tokenized fields according to the message type observed.
                 #1_2_3                
                 if(input_msg_type in ("1", "2", "3")):
-               
-                    # Old -  ext_timestamp,repeat,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc,sh_type,sh_name
-                    # Old - out_message_records[0].write(pipetokenizedline[3] + "," + pipetokenizedline[2] + "," + pipetokenizedline[1] + "," + pipetokenizedline[0] + "," + pipetokenizedline[13] + "," + pipetokenizedline[15] + "," + pipetokenizedline[19] + "," + pipetokenizedline[20] + "," + pipetokenizedline[18] + "," + pipetokenizedline[17] + "," + pipetokenizedline[16] + "," + "" + "," + "" + "\n")
 
                     # ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc
                     out_message_records[0].write(pipetokenizedline[3] + "," + pipetokenizedline[1] + "," + pipetokenizedline[0] + "," + pipetokenizedline[13] + "," + pipetokenizedline[15] + "," + pipetokenizedline[19] + "," + pipetokenizedline[20] + "," + pipetokenizedline[18] + "," + pipetokenizedline[17] + "," + pipetokenizedline[16] + "\n")
@@ -86,12 +83,6 @@ for infile_index in range(len(sys.argv) - 3):
 
                 #18_19 
                 elif(input_msg_type in ("18", "19")):
-
-                    # Pre-parser ordering of fields from raw AIS type 18_19:
-                    
-                    #Old - ext_timestamp,repeat,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc,sh_type,sh_name
-                    #Old - 3,2,1,0,none,19,23,24,22,21,20,14,13
-                    #Old - out_message_records[1].write(pipetokenizedline[3] + "," + pipetokenizedline[2] + "," + pipetokenizedline[1] + "," + pipetokenizedline[0] + "," + "" + "," + pipetokenizedline[19] + "," + pipetokenizedline[23] + "," + pipetokenizedline[24] + "," + pipetokenizedline[22] + "," + pipetokenizedline[21] + "," + pipetokenizedline[20] + "," + pipetokenizedline[14] + "," + pipetokenizedline[13] + "\n")
 
                     #ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc
                     #3,1,0,none,19,23,24,22,21,20
@@ -115,9 +106,9 @@ for data_index in range(len(out_filename_array) - 1):
     
     print("Processing: " + out_filename_array[(data_index)])
 
-    with open(out_filename_array[data_index],'r') as in_parsed_sing_AIS_underway:
+    with open(out_filename_array[data_index],'r') as in_parsed_AIS_underway:
 
-        for line in in_parsed_sing_AIS_underway:
+        for line in in_parsed_AIS_underway:
             
             tokenizedline = line.split(',')
 
