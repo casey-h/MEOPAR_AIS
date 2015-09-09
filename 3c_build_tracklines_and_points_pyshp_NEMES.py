@@ -6,14 +6,14 @@ import shapefile
 import sys
 from glob import glob
 
-# build_tracklines_NEMES.py - Converts a set of input files, as generated /
-# formatted by divide_tracks_v_NEMES.py, and generates a GIS layer (ESRI 
-# Shapefile) of track segments (as polyline objects), using the combination 
-# of MMSI number and track ID (added by divide_tracks_v_NEMES.py) as a 
-# primary key, and assuming the points are in chronological order. Requires
-# that QGIS be installed in the calling environment and be available
-# to python via pyqgis. Flags tracklines which contain point sequences 
-# with implied speeds that suggest there are bad points contained within.
+# build_tracklines_and_points_pyshp_NEMES.py - Converts a set of input files, 
+# as generated / formatted by divide_tracks_v_NEMES.py, and generates a GIS 
+# layer (ESRI Shapefile) of track segments (as polyline objects), using the 
+# combination of MMSI number and track ID (added by divide_tracks_v_NEMES.py) 
+# as a primary key, and assuming the points are in chronological order. Requires
+# that pyshp be available in the calling environment. Flags tracklines which 
+# contain point sequences with implied speeds that suggest there are bad 
+# points contained within.
 
 #########################################################
 from math import radians, cos, sin, asin, sqrt

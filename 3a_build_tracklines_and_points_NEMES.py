@@ -7,12 +7,12 @@ from PyQt4.QtCore import *
 import sys
 from glob import glob
 
-# build_tracklines_NEMES.py - Converts a set of input files, as generated /
-# formatted by divide_tracks_v_NEMES.py, and generates a GIS layer (ESRI 
-# Shapefile) of track segments (as polyline objects), using the combination 
-# of MMSI number and track ID (added by divide_tracks_v_NEMES.py) as a 
-# primary key, and assuming the points are in chronological order. Requires
-# that QGIS be installed in the calling environment and be available
+# build_tracklines_and_points_NEMES.py - Converts a set of input files, as 
+# generated / formatted by divide_tracks_v_NEMES.py, and generates a GIS layer 
+# (ESRI # Shapefile) of track segments (as polyline objects), using the 
+# combination of MMSI number and track ID (added by divide_tracks_v_NEMES.py) 
+# as a primary key, and assuming the points are in chronological order. 
+# Requires that QGIS be installed in the calling environment and be available
 # to python via pyqgis. Flags tracklines which contain point sequences 
 # with implied speeds that suggest there are bad points contained within.
 
