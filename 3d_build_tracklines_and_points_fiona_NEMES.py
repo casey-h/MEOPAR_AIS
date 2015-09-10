@@ -2,6 +2,7 @@
 
 # Import fiona
 import fiona
+from shapely.geometry import mapping, Point, LineString
 
 import sys
 from glob import glob
@@ -11,9 +12,10 @@ from glob import glob
 # (ESRI # Shapefile) of track segments (as polyline objects), using the 
 # combination of MMSI number and track ID (added by divide_tracks_v_NEMES.py) 
 # as a primary key, and assuming the points are in chronological order. 
-# Requires that fiona (+GDAL) be installed in the calling environment and be 
-# available to python. Flags tracklines which contain point sequences 
-# with implied speeds that suggest there are bad points contained within.
+# Requires that fiona and shapely (+GDAL) be installed in the calling 
+# environment and be available to python. Flags tracklines which contain 
+# point sequences with implied speeds that suggest there are bad points 
+# contained within.
 
 #########################################################
 from math import radians, cos, sin, asin, sqrt
@@ -54,8 +56,8 @@ track_data_schema = {'geometry':'LineString',
 'properties': {'TrackID': 'int',
 'mmsi': 'str:12',
 'elp_sec': 'int',
-'st_date': 'str;20',
-'en_date': 'str;20',
+'st_date': 'str:20',
+'en_date': 'str:20',
 'bad_spd': 'int' }}
 
 # Define the data fields to be included in the output point layer.
@@ -75,21 +77,27 @@ point_data_schema = {'geometry':'Point',
 'bad_spd': 'int'}}
 ### navstatus length is to accomodate the gpsd interpreted text for nav status, might be better to truncate or re-enumerate for size.
 
+# Counters to determine the number of track and point records written.
+track_counter = 0
+point_counter = 0
+
+# The interval at which records should be flushed to the output files.
+flush_interval = 1000
 
 # Hydrophone Coordinate
 hydro_lon = -135.3050
 hydro_lat = 53.3055
 
 # If an error occurs while creating the output file writer objects, display the error and abort.
-try
+try:
     track_outfile = fiona.open(out_line_filename, 'w', crs=track_data_crs, driver=track_data_source_driver, schema=track_data_schema)
-except Exception, e
+except Exception, e:
     print "Error when creating output track shapefile: " + out_line_filename
     print "Message" + str(e)
 
-try
+try:
     point_outfile = fiona.open(out_point_filename, 'w', crs=point_data_crs, driver=point_data_source_driver, schema=point_data_schema)
-except Exception, e
+except Exception, e:
     print "Error when creating output track shapefile: " + out_line_filename
     print "Message" + str(e)
     
@@ -107,7 +115,7 @@ for infile_index in range(len(sys.argv) - 2):
         
             # Initialize an index into the track ID values and a list to hold waypoints while tracks are constructed.
             prev_inTrackID = -1
-            trackPoints = [[]]
+            trackPoints = []
             
             # Iterate over the lines in the current file of track data.
             for line in in_track_records:
@@ -162,25 +170,31 @@ for infile_index in range(len(sys.argv) - 2):
                     ### (Begin) Add the current point to the point output layer
                     # Calculate the distance from the point to the hydrophone.
                     hydro_dist = haversine(inLon, inLat, hydro_lon, hydro_lat)
+
+                    # Define and write the point record to file.
+                    point_outfile.write({
+                        'geometry': mapping(Point(inLon, inLat)),
+                        'properties': {
+                        'TrackID': inTrackID,
+                        'msgid': inMsgId,
+                        'mmsi': inMMSI,
+                        'navstatus': inNavStatus,
+                        'sog': inSog,
+                        'cog': inCog,
+                        'tr_hdg': inTrHdg,
+                        'pos_acc': inPosAcc,
+                        'ais_date': inMaxDate,
+                        'hydro_dist': hydro_dist,
+                        'bad_spd': badSpeedFlag
+                        }
+                    })
                     
-                    ####
-                    # Define the point record to be written to file.
-                    # DEBUG info: http://gis.stackexchange.com/questions/119176/properly-writing-floats-to-feature-properties-of-a-new-shapefile-in-fiona
-                    out_point_record = {}
-                    out_point_record['geometry'] = {'coordinates': [[(inLon, inLat)]], 'type', 'Point'}
-                    out_point_record['properties']['TrackID'] = inTrackID
-                    out_point_record['properties']['msgid'] = inMsgId
-                    out_point_record['properties']['mmsi'] = inMMSI
-                    out_point_record['properties']['navstatus'] = inNavStatus
-                    out_point_record['properties']['sog'] = inSog
-                    out_point_record['properties']['cog'] = inCog
-                    out_point_record['properties']['tr_hdg'] = inTrHdg
-                    out_point_record['properties']['pos_acc'] = inPosAcc
-                    out_point_record['properties']['ais_date'] = inMaxDate
-                    out_point_record['properties']['hydro_dist'] = hydro_dist
-                    out_point_record['properties']['bad_spd'] = badSpeedFlag
+                    # Increment the counter and flush if needed.
+                    point_counter = point_counter + 1
+                        
+                    if (point_counter % flush_interval == 0):
+                        point_outfile.flush()
                     
-                    point_outfile.write(out_point_record)
                     out_point_record = None
                     
                     ####
@@ -197,19 +211,25 @@ for infile_index in range(len(sys.argv) - 2):
                     # If the existing track has at least two points, proceed with writing it out.
                     if(len(trackPoints) > 1):
                     
-                        # Define the track record to be written to file.
-                        out_track_record = {}
-                        out_track_record['geometry'] = {'coordinates': trackPoints, 'type', 'LineString'}
-                        out_track_record['properties']['TrackID'] = prev_inTrackID
-                        out_track_record['properties']['mmsi'] = inMMSI
-                        out_track_record['properties']['elp_sec'] = (inMaxSeconds - inMinSeconds)
-                        out_track_record['properties']['st_date'] = inMinDate
-                        out_track_record['properties']['en_date'] = inMaxDate
-                        out_track_record['properties']['bad_spd'] = badSpeedFlag
+                        # Define and write the track record to file.
+                        track_outfile.write({
+                            'geometry': mapping(LineString(trackPoints)),
+                            'properties': {
+                            'TrackID': prev_inTrackID,
+                            'mmsi': inMMSI,
+                            'elp_sec': (inMaxSeconds - inMinSeconds),
+                            'st_date': inMinDate,
+                            'en_date': inMaxDate,
+                            'bad_spd': badSpeedFlag
+                            }
+                        })
+                        
+                        # Increment the counter and flush if needed.
+                        track_counter = track_counter + 1
+                        
+                        if (track_counter % flush_interval == 0):
+                            track_outfile.flush()
 
-                        track_outfile.write(out_track_record)
-                        out_track_record = None
-                    
                     prev_inTrackID = inTrackID
                     
                     # Parse the values from the input line.
@@ -251,30 +271,37 @@ for infile_index in range(len(sys.argv) - 2):
                     badSpeedFlag = 0 
                     
                     # Reset the existing list of points, then append the current point to the list of points for the next track.
-                    trackPoints = [[]]
+                    trackPoints = []
                     trackPoints.append((inLon, inLat))
                     
                     ### (Begin) Add the current point to the point output layer
                     # Calculate the distance from the point to the hydrophone.
                     hydro_dist = haversine(inLon, inLat, hydro_lon, hydro_lat)
                     
-                    # Define the point record to be written to file.
-                    out_point_record = {}
-                    out_point_record['geometry'] = {'coordinates': [[(inLon, inLat)]], 'type', 'Point'}
-                    out_point_record['properties']['TrackID'] = inTrackID
-                    out_point_record['properties']['msgid'] = inMsgId
-                    out_point_record['properties']['mmsi'] = inMMSI
-                    out_point_record['properties']['navstatus'] = inNavStatus
-                    out_point_record['properties']['sog'] = inSog
-                    out_point_record['properties']['cog'] = inCog
-                    out_point_record['properties']['tr_hdg'] = inTrHdg
-                    out_point_record['properties']['pos_acc'] = inPosAcc
-                    out_point_record['properties']['ais_date'] = inMaxDate # Note: value in inMaxDate always valid for points.
-                    out_point_record['properties']['hydro_dist'] = hydro_dist
-                    out_point_record['properties']['bad_spd'] = badSpeedFlag
+                    # Define and write the point record to file.
+                    point_outfile.write({
+                        'geometry': mapping(Point(inLon, inLat)),
+                        'properties': {
+                        'TrackID': inTrackID,
+                        'msgid': inMsgId,
+                        'mmsi': inMMSI,
+                        'navstatus': inNavStatus,
+                        'sog': inSog,
+                        'cog': inCog,
+                        'tr_hdg': inTrHdg,
+                        'pos_acc': inPosAcc,
+                        'ais_date': inMaxDate,
+                        'hydro_dist': hydro_dist,
+                        'bad_spd': badSpeedFlag
+                        }
+                    })
                     
-                    point_outfile.write(out_point_record)
-                    out_point_record = None
+                    # Increment the counter and flush if needed.
+                    point_counter = point_counter + 1
+                        
+                    if (point_counter % flush_interval == 0):
+                        point_outfile.flush()
+                    
                      ### (End) Add the current point to the point output layer
                     
                 # If the current line extends the current track, aggregate the values as required.
@@ -329,41 +356,53 @@ for infile_index in range(len(sys.argv) - 2):
                     # Calculate the distance from the point to the hydrophone.
                     hydro_dist = haversine(inLon, inLat, hydro_lon, hydro_lat)
                     
-                    # Define the point record to be written to file.
-                    out_point_record = {}
-                    out_point_record['geometry'] = {'coordinates': [[(inLon, inLat)]], 'type', 'Point'}
-                    out_point_record['properties']['TrackID'] = inTrackID
-                    out_point_record['properties']['msgid'] = inMsgId
-                    out_point_record['properties']['mmsi'] = inMMSI
-                    out_point_record['properties']['navstatus'] = inNavStatus
-                    out_point_record['properties']['sog'] = inSog
-                    out_point_record['properties']['cog'] = inCog
-                    out_point_record['properties']['tr_hdg'] = inTrHdg
-                    out_point_record['properties']['pos_acc'] = inPosAcc
-                    out_point_record['properties']['ais_date'] = inMaxDate # Note: value in inMaxDate always valid for points.
-                    out_point_record['properties']['hydro_dist'] = hydro_dist
-                    out_point_record['properties']['bad_spd'] = badSpeedFlag
+                    # Define and write the point record to file.
+                    point_outfile.write({
+                        'geometry': mapping(Point(inLon, inLat)),
+                        'properties': {
+                        'TrackID': inTrackID,
+                        'msgid': inMsgId,
+                        'mmsi': inMMSI,
+                        'navstatus': inNavStatus,
+                        'sog': inSog,
+                        'cog': inCog,
+                        'tr_hdg': inTrHdg,
+                        'pos_acc': inPosAcc,
+                        'ais_date': inMaxDate,
+                        'hydro_dist': hydro_dist,
+                        'bad_spd': badSpeedFlag
+                        }
+                    })
                     
-                    point_outfile.write(out_point_record)
-                    out_point_record = None
+                    # Increment the counter and flush if needed.
+                    point_counter = point_counter + 1
+                    
+                    if (point_counter % flush_interval == 0):
+                        point_outfile.flush()
                     
                      ### (End) Add the current point to the point output layer
 
             # If the last remaining track has at least two points, proceed with writing it out.
             if(len(trackPoints) > 1):
                 
-                # Define the track record to be written to file.
-                out_track_record = {}
-                out_track_record['geometry'] = {'coordinates': trackPoints, 'type', 'LineString'}
-                out_track_record['properties']['TrackID'] = prev_inTrackID
-                out_track_record['properties']['mmsi'] = inMMSI
-                out_track_record['properties']['elp_sec'] = (inMaxSeconds - inMinSeconds)
-                out_track_record['properties']['st_date'] = inMinDate
-                out_track_record['properties']['en_date'] = inMaxDate
-                out_track_record['properties']['bad_spd'] = badSpeedFlag
-
-                track_outfile.write(out_track_record)
-                out_track_record = None
+                # Define and write the track record to file.
+                track_outfile.write({
+                    'geometry': mapping(LineString(trackPoints)),
+                    'properties': {
+                    'TrackID': prev_inTrackID,
+                    'mmsi': inMMSI,
+                    'elp_sec': (inMaxSeconds - inMinSeconds),
+                    'st_date': inMinDate,
+                    'en_date': inMaxDate,
+                    'bad_spd': badSpeedFlag
+                    }
+                })
+            
+                # Increment the counter and flush if needed.
+                track_counter = track_counter + 1
+                
+                if (track_counter % flush_interval == 0):
+                    track_outfile.flush()
 
 # Close the output files to flush features to disk.
 track_outfile.close()

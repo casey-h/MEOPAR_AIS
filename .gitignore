@@ -2,6 +2,9 @@
 [Tt]humbs.db
 *.DS_Store
 
+# Any intermediate backups under this folder.
+backup/
+
 #shapefile.py, used for testing / running scripts.
 shapefile.py
 shapefile.pyc
