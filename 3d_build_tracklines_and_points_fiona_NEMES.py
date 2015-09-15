@@ -82,7 +82,7 @@ track_counter = 0
 point_counter = 0
 
 # The interval at which records should be flushed to the output files.
-flush_interval = 1000
+flush_interval = 5000
 
 # Hydrophone Coordinate
 hydro_lon = -135.3050
