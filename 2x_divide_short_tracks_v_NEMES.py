@@ -206,7 +206,7 @@ for infile_index in range(len(sys.argv) - 2):
                         
                         # Print out the first point of the pair.
                         # old 20150915 out_vessel_records.write("" + str(track_index) + "," + datetimetoken + "," + mmsi + "," + str(latitude) + "," + str(longitude) + "," + shiptype + "," + shipname + "," + str(elapsed_segment_time) + "," + str(segment_length) + "," + str(segment_bearing))
-                        out_vessel_records.write("" + str(track_index) + "," + str(int(prev_timeval)) + "," + prev_datetimetoken + "," + prev_msgid + "," + prev_mmsi + "," + prev_navstatus + "," + prev_sog + "," + prev_cog + "," + prev_tr_hdg + "," + str(latitude) + "," + str(longitude) + "," + prev_pos_acc)
+                        out_vessel_records.write("" + str(track_index) + "," + str(int(prev_timeval)) + "," + prev_datetimetoken + "," + prev_msgid + "," + prev_mmsi + "," + prev_navstatus + "," + prev_sog + "," + prev_cog + "," + prev_tr_hdg + "," + str(prev_latitude) + "," + str(prev_longitude) + "," + prev_pos_acc)
                         
                         # Print out the second point of the pair
                         # old 20150915 out_vessel_records.write("" + str(track_index) + "," + prev_datetimetoken + "," + prev_mmsi + "," + str(prev_latitude) + "," + str(prev_longitude) + "," + prev_shiptype + "," + prev_shipname + "," + str(elapsed_segment_time) + "," + str(segment_length) + "," + str(segment_bearing))                        
