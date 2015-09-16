@@ -26,6 +26,7 @@
 from glob import glob
 import sys
 import time
+from os import sep
 
 #########################################################
 from math import radians, cos, sin, asin, sqrt
@@ -50,11 +51,7 @@ def haversine(lon1, lat1, lon2, lat2):
 #########################################################
 
 # Establish a path separator. 
-# CH - Ugly, detect this rather than set 
-# Linux
-#path_separator = "/"
-# Windows
-path_separator = "\\"
+path_separator = sep
 
 if (len(sys.argv) < 3):
     print 'Usage: divide_tracks_v_NEMES.py outputdirectory inputfilename [inputfilename ...] ... \n Adds track delineation to a number of input files of vessel underway data, predivided into single files per mmsi under the specified output directory.\n'
@@ -96,6 +93,12 @@ for infile_index in range(len(sys.argv) - 2):
             out_invalid_records = open(outdirectory + path_separator + "invalid_" + outfilename, 'w')
         except IOError:
             print "Error opening file: " + outdirectory + path_separator + "invalid_" + outfilename + "\n"
+            quit()
+            
+        try:
+            out_orphaned_records = open(outdirectory + path_separator + "orphaned_" + outfilename, 'w')
+        except IOError:
+            print "Error opening file: " + outdirectory + path_separator + "orphaned_" + outfilename + "\n"
             quit()
 
         with open(in_filename,'r') as in_vessel_records:
@@ -200,12 +203,15 @@ for infile_index in range(len(sys.argv) - 2):
                             prev_longitude = longitude
                             prev_pos_acc = pos_acc
                             prev_timeval = timeval
-
                             
                         # If the time interval between points is greater than or equal to the time interval
                         # suggesting track separation, or the navigation status has changed, store the current 
                         # values as previous, and set the track point counter as 1.
                         else:
+                            
+### (Begin) This condition suggests an orphaned point (the existing -1/"prev_" point)
+                            out_orphaned_records.write("" + str(track_index) + "," + str(int(prev_timeval)) + "," + prev_datetimetoken + "," + prev_msgid + "," + prev_mmsi + "," + prev_navstatus + "," + prev_sog + "," + prev_cog + "," + prev_tr_hdg + "," + prev_latitude + "," + prev_longitude + "," + prev_pos_acc)
+### (End) This condition suggests an orphaned point (the existing -1/"prev_" point)
                             
                             # Set the track point counter as 1.
                             track_point_counter = 1
@@ -303,7 +309,7 @@ for infile_index in range(len(sys.argv) - 2):
                                 # only if the speed value calculated in the previous iteration suggested that it 
                                 # was a valid part of the track.
                                 if (track_point_counter > 2) and (spd_one < track_speed_threshold):
-                                    #out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_shiptype + "," + prev_prev_shipname)
+                                    
                                     out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_msgid + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_sog + "," + prev_prev_cog + "," + prev_prev_tr_hdg + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_pos_acc)
                                 
                                 # Increment the track point counter.
@@ -341,13 +347,11 @@ for infile_index in range(len(sys.argv) - 2):
                             # If the speed is at least 0.5 knots, continue processing.
                             else:
                         
-                        
                                 # If the speed implied between the -2 and -1 positions is below the upper
                                 # reasonable threshold (160kph), write out the -2 position data and update
                                 # the previous values.
                                 if(spd_one < track_speed_threshold):
                                 
-                                    #out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_shiptype + "," + prev_prev_shipname)
                                     out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_msgid + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_sog + "," + prev_prev_cog + "," + prev_prev_tr_hdg + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_pos_acc)
                                 
                                     # Increment the track point counter.
@@ -385,7 +389,11 @@ for infile_index in range(len(sys.argv) - 2):
                                 # with the -1 point before proceeding to the next iteration to eliminate 
                                 # the invalid point.
                                 elif(spd_two > track_speed_threshold):
-                                            
+
+### (Begin) This condition suggests an orphaned point (the existing -2/"prev_prev_" point)
+                                    out_orphaned_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_msgid + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_sog + "," + prev_prev_cog + "," + prev_prev_tr_hdg + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_pos_acc)
+### (End) This condition suggests an orphaned point (the existing -2/"prev_prev_" point)
+
                                     # Store the previous values as two steps back ("-2").
                                     prev_prev_datetimetoken = prev_datetimetoken
                                     prev_prev_msgid = prev_msgid
@@ -418,7 +426,11 @@ for infile_index in range(len(sys.argv) - 2):
                                 # -1 position point is invalid and skip to the next iteration to eliminate 
                                 # the invalid point.
                                 else:
-                                    
+
+### (Begin) This condition suggests an orphaned point (the existing -1/"prev_" point)
+                                    out_orphaned_records.write("" + str(track_index) + "," + str(int(prev_timeval)) + "," + prev_datetimetoken + "," + prev_msgid + "," + prev_mmsi + "," + prev_navstatus + "," + prev_sog + "," + prev_cog + "," + prev_tr_hdg + "," + prev_latitude + "," + prev_longitude + "," + prev_pos_acc)
+### (End) This condition suggests an orphaned point (the existing -1/"prev_" point)
+
                                     # Store the current values as previous ("-1").
                                     prev_datetimetoken = datetimetoken
                                     prev_msgid = msgid
@@ -450,13 +462,30 @@ for infile_index in range(len(sys.argv) - 2):
                         out_vessel_records.write("" + str(track_index) + "," + str(int(prev_timeval)) + "," + prev_datetimetoken + "," + prev_msgid + "," + prev_mmsi + "," + prev_navstatus + "," + prev_sog + "," + prev_cog + "," + prev_tr_hdg + "," + prev_latitude + "," + prev_longitude + "," + prev_pos_acc)
      
                     else:
-                    
+### (Begin) This condition suggests an orphaned point (the existing -1/"prev_" point)
+                        out_orphaned_records.write("" + str(track_index) + "," + str(int(prev_timeval)) + "," + prev_datetimetoken + "," + prev_msgid + "," + prev_mmsi + "," + prev_navstatus + "," + prev_sog + "," + prev_cog + "," + prev_tr_hdg + "," + prev_latitude + "," + prev_longitude + "," + prev_pos_acc)
+### (End) This condition suggests an orphaned point (the existing -1/"prev_" point)
+
                         out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_msgid + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_sog + "," + prev_prev_cog + "," + prev_prev_tr_hdg + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_pos_acc)
                         
                 # If there is a significant time gap between the -2 and -1 points, output only the -2 position.
                 else:
+                
+### (Begin) This condition suggests an orphaned point (the existing -1/"prev_" point)
+                        out_orphaned_records.write("" + str(track_index) + "," + str(int(prev_timeval)) + "," + prev_datetimetoken + "," + prev_msgid + "," + prev_mmsi + "," + prev_navstatus + "," + prev_sog + "," + prev_cog + "," + prev_tr_hdg + "," + prev_latitude + "," + prev_longitude + "," + prev_pos_acc)
+### (End) This condition suggests an orphaned point (the existing -1/"prev_" point)
+
                         out_vessel_records.write("" + str(track_index) + "," + str(int(prev_prev_timeval)) + "," + prev_prev_datetimetoken + "," + prev_prev_msgid + "," + prev_prev_mmsi + "," + prev_prev_navstatus + "," + prev_prev_sog + "," + prev_prev_cog + "," + prev_prev_tr_hdg + "," + prev_prev_latitude + "," + prev_prev_longitude + "," + prev_prev_pos_acc)
 
-            out_vessel_records.close
-            out_stationary_records.close
-            out_invalid_records.close
+            # If track_point_counter == 1, suggests a dropped point (an existing "first" point).
+            else:
+                if (track_point_counter == 1):
+                
+### (Begin) This condition suggests an orphaned point(the existing -1/"prev_" point)
+                    out_orphaned_records.write("" + str(track_index) + "," + str(int(prev_timeval)) + "," + prev_datetimetoken + "," + prev_msgid + "," + prev_mmsi + "," + prev_navstatus + "," + prev_sog + "," + prev_cog + "," + prev_tr_hdg + "," + prev_latitude + "," + prev_longitude + "," + prev_pos_acc)
+### (End) This condition suggests an orphaned point(the existing -1 "prev_" point)
+                        
+            out_vessel_records.close()
+            out_stationary_records.close()
+            out_invalid_records.close()
+            out_orphaned_records.close()

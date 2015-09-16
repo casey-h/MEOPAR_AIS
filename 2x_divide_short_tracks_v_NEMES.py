@@ -78,11 +78,6 @@ def bearing(lon1, lat1, lon2, lat2):
 #########################################################
 
 # Establish a path separator. 
-# CH - Ugly, detect this rather than set 
-# Linux
-#path_separator = "/"
-# Windows
-#path_separator = "\\"
 path_separator = sep
 
 #DEBUG
@@ -232,6 +227,6 @@ for infile_index in range(len(sys.argv) - 2):
                         prev_timeval = timeval
      
         # Close the output files.
-        out_vessel_records.close
-        out_stationary_records.close
-        out_invalid_records.close
+        out_vessel_records.close()
+        out_stationary_records.close()
+        out_invalid_records.close()
