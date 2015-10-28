@@ -18,7 +18,7 @@ def is_number(s):
 # End function (is_number)
 
 # Usage string for the script.
-usage_string = "Usage: split_ONC_AIS_pre_tracks_NEMES.py outputdirectory outputfilenameprefix inputfilename1 [inputfilename2 ...] \n\nSplits pre-parsed position-referenced AIS records, as provided by ONC, parsed by 0_gpsd_ais_ONC_Parsing.py into sub files by message type, while re-ordering the incoming data to match the format expected by the track division script, 2_divide_tracks_v_NEMES.py. Script created for NEMES project.\n"
+usage_string = "Usage: split_NM4_Sourced_AIS_pre_tracks_NEMES.py outputdirectory outputfilenameprefix inputfilename1 [inputfilename2 ...] \n\nSplits pre-parsed position-referenced AIS records, as provided by ONC, parsed by 0_gpsd_ais_ONC_Parsing.py into sub files by message type, while re-ordering the incoming data to match the format expected by the track division script, 2_divide_tracks_v_NEMES.py. Developed in support of the NEMES project (http://www.nemesproject.com/).\n"
 
 # If at least two arguments are not provided, display an usage message.
 if (len(sys.argv) < 4):
@@ -55,7 +55,7 @@ for outfile_index in range(len(out_filename_array)):
 out_message_records[0].write("ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc\n");
 
 #5
-out_message_records[1].write("ext_timestamp,msgid,repeat,mmsi,ais_ver,imo,call_sign,vsl_name,ship_type,dim_bow,dim_ster,dim_port,dim_star,pos_fix,eta_min,eta_day,eta_hour,eta_min,draught,dest,dte\n"
+out_message_records[1].write("ext_timestamp,msgid,repeat,mmsi,ais_ver,imo,call_sign,vsl_name,ship_type,dim_bow,dim_ster,dim_port,dim_star,pos_fix,eta_mon,eta_day,eta_hour,eta_min,draught,dest,dte\n"
 );
 
 #18_19 

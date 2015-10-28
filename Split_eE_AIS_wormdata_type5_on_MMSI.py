@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # Split Postgres Export files of exactEarth position-referenced AIS data for Dr. Worm / Kristina on mmsi.
-
+# Expects input fields:Unq_ID, mmsi, longitude, latitude, datetime, message_id, parseerror, ais_msg_eecsv
 from glob import glob
 import sys
 import os
@@ -38,7 +38,7 @@ for infile_index in range(len(sys.argv) - 2):
                 if(len(tokenizedline) == 8):
                     
                     mmsi = tokenizedline[1];
-                    msg_type = tokenizedline[5];
+                    msg_type = tokenizedline[6];
                     
                     # If the message_type indicates movement, proceed.        
                     if msg_type in ('5'):
@@ -52,7 +52,7 @@ for infile_index in range(len(sys.argv) - 2):
                             
                         #MMSI,datetime,messagetype,vsl_name,IMO,ship_type
                         pipetokenizedtoken = tokenizedline[7].split("|")
-                        outline = tokenizedline[0] + "," + tokenizedline[3] + "," + tokenizedline[4] + "," + pipetokenizedtoken[13] + "," + pipetokenizedtoken[15] + "," + pipetokenizedtoken[16] + "\n"
+                        outline = tokenizedline[1] + "," + tokenizedline[4] + "," + tokenizedline[6] + "," + pipetokenizedtoken[13] + "," + pipetokenizedtoken[15] + "," + pipetokenizedtoken[16] + "\n"
                         outfile.write(outline)
                             
                         outfile.close

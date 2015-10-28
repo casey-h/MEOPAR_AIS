@@ -1225,7 +1225,7 @@ def parse_ais_messages(source, scaled=False, skiperr=False, verbose=0):
 if __name__ == "__main__":
     import sys, getopt
 
-    usage_msg = ("\nUsage: gpsd_ais_ONC_parsing.py -? -s -c -d -h -j -m -s -x -t {msgtypes} -f {inputfile} \n\n"
+    usage_msg = ("\nUsage: gpsd_ais_NM4_parsing.py -? -s -c -d -h -j -m -s -x -t {msgtypes} -f {inputfile} \n\n"
         "-?: Display this usage message and exit \n"
         "-s: Present values in 'scaled' format -- translate from AIS storage units to \"real-world\" \n"
         "-c: Report in pipe-delimited format \n"

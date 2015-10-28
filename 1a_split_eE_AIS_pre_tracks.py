@@ -8,7 +8,7 @@ import os
 import time
 
 # Usage string for the script.
-usage_string = "Usage: split_eE_AIS_pre_tracks_NEMES.py outputdirectory outputfilenameprefix inputfilename1 [inputfilename2 ...] \n\nSplits pre-parsed position-referenced eE AIS records (Postgres Export) into sub files by message type, then mmsi pre track creation for the NEMES project.\n"
+usage_string = "Usage: split_eE_AIS_pre_tracks.py outputdirectory outputfilenameprefix inputfilename1 [inputfilename2 ...] \n\nSplits pre-parsed position-referenced eE AIS records (Postgres Export) into sub files by message type, then mmsi pre track creation. Developed in support of the NEMES project (http://www.nemesproject.com/).\n"
 
 # If at least two arguments are not provided, display an usage message.
 if (len(sys.argv) < 4):

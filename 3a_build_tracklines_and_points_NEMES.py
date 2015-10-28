@@ -50,7 +50,7 @@ QgsApplication.initQgis()
 
 # If the wrong number of arguments is provided, display an usage message.
 if (len(sys.argv) < 3):
-    print 'Usage: build_tracklines_NEMES.py outputshapefileprefix inputfilename [inputfilename ...] ... \n Reads the specified input filenames, presumed to correspond to csv files of waypoint data, one per mmsi, ordered by timestamp. (output of divide_tracks_v_NEMES.py).\n'
+    print 'Usage: build_tracklines_and_points_NEMES.py outputshapefileprefix inputfilename [inputfilename ...] ... \n Reads the specified input filenames, presumed to correspond to csv files of waypoint data, one per mmsi, ordered by timestamp (output of divide_tracks.py). Developed in support of the NEMES project (http://www.nemesproject.com/).\n'
     quit()
 
 # Copy the output filename from the argument vector.

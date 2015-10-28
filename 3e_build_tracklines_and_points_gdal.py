@@ -1,5 +1,7 @@
 #!/usr/bin/python
 
+# build_tracklines_and_points_gdal.py
+
 # Import OGR/OSR
 import osgeo.ogr as ogr
 import osgeo.osr as osr
@@ -7,9 +9,6 @@ import osgeo.osr as osr
 import sys
 import os.path
 from glob import glob
-
-
-# build_tracklines_and_points_gdal_NEMES.py
 
 #########################################################
 from math import radians, cos, sin, asin, sqrt
@@ -35,7 +34,7 @@ def haversine(lon1, lat1, lon2, lat2):
 
 # If the wrong number of arguments is provided, display an usage message.
 if (len(sys.argv) < 3):
-    print 'Usage: build_tracklines_NEMES.py outputshapefileprefix inputfilename [inputfilename ...] ... \n Reads the specified input filenames, presumed to correspond to csv files of waypoint data, one per mmsi, ordered by timestamp. (output of divide_tracks_v_NEMES.py).\n'
+    print 'Usage: build_tracklines_and_points_gdal.py outputshapefileprefix inputfilename [inputfilename ...] ... \n Reads the specified input filenames, presumed to correspond to csv files of waypoint data, one per mmsi, ordered by timestamp. (output of divide_tracks.py). Generates shapefiles of corresponding trajectories. Developed in support of the NEMES project (http://www.nemesproject.com/).\n'
     quit()
 
 # Copy the output filename from the argument vector.
