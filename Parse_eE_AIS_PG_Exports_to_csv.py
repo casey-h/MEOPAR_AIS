@@ -160,7 +160,7 @@ for infile_index in range(len(sys.argv) - 2):
                         if (len(pipetokenizedtoken) <> 35):
                             print("Error, incorrect number of tokens for message type 5: " + str(len(pipetokenizedtoken)) + " tokens. \nLine:" + line + "\n")
                         
-                        outline = ",".join(tokenizedline[0:6]) + ",".join(pipetokenizedtoken[0:11]) + ",\"" + pipetokenizedtoken[12] + "\",\"" + pipetokenizedtoken[13] + "\"," + ",".join(pipetokenizedtoken[14:]) + "\n"
+                        outline = ",".join(tokenizedline[0:6]) + ",".join(pipetokenizedtoken[0:11]) + ",\"" + pipetokenizedtoken[12] + "\",\"" + pipetokenizedtoken[13] + "\"," + ",".join(pipetokenizedtoken[14:21]) + ",\"" + pipetokenizedtoken[22] + "\"," + ",".join(pipetokenizedtoken[23:]) + "\n"
                         
                         # Need to wrap 'Destination' as well !!!
                         
