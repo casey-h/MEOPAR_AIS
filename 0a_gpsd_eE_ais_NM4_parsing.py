@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 #
 # A Python AIVDM/AIVDO decoder -- edits by CH (2015-08), tailoring code specifically 
-# for AIS datafiles as published via dmas.uvic.ca (but which conform to the 
-# anticipated message format as output by most units). Most critically, added handling
-# for per-line date prefixes to !AIVDO strings, and adjusted command line flags to
+# for AIS NM4 datafiles as published by exactEarth. Includes handling of odd escaping
+# presented in prefix to !AIVDO strings, and adjusted command line flags to
 # accept input files rather than drawing all input from stdin. Also added descriptive
 # help message, w/ flag descriptions, called by -? flag. Most edits are denoted with
 # comments and tagged 'CH' + the date in yyyymmdd format.
@@ -1059,13 +1058,16 @@ def packet_scanner(source,skiperr=False):
         if not line:
             return
             
-        # Parse the date separately from the remainder of the incoming line, 
-        # conserve the first date extracted. CH 20150827
-        dateloc = line.find(" ")
+        # Parse the eE AIS prefix / date separately from the remainder of the incoming line, 
+        # conserve the prefix / date extracted. CH 20151104
+        dateloc = line.find("\\", line.find("\\")+1)
         if (date == ""):
             date = line[0:dateloc]
+            # DEBUG -- Print located prefix
+            # print "Date and prefix located: " + date
+            # sys.stderr.write("Date and prefix located: " + date)
         line = line[dateloc+1:]
-            
+
         raw += line
         
         line = line.strip()

@@ -89,10 +89,6 @@ if (len(sys.argv) < 3):
 
 outdirectory = sys.argv[1]
 
-# track_separation_time - Maximum time between sequential data points for which the points will be a valid segment. Measured in seconds. 
-# Note: 180s = max separation between sequential type A AIS points under any conditions according to AIS spec.
-track_separation_time = 180
-
 for infile_index in range(len(sys.argv) - 2):
     
     # Attempt wildcard expansion on any input file specified (Only (likely) req'd for Windows).
