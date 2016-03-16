@@ -124,7 +124,7 @@ for data_index in range(len(out_filename_array) - 1):
                     quit()
                     
                 outfile.write(line)
-                outfile.close
+                outfile.close()
             else:
                 
                 print("Error, incorrect number of tokens:" + str(len(tokenizedline)) + "Line:" + line + "\n")

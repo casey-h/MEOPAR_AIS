@@ -348,7 +348,8 @@ for infile_index in range(len(sys.argv) - 2):
                     inLon = float(tokenizedline[10])
                     inPosAcc = tokenizedline[11]
                     
-                    # If the distance and time between the previous and current positions.
+                    # If the distance and time between the previous and current position indicates a speed of 
+                    # greater than 160 kph (0.044444 km per s), set a 'bad speed' flag on the record.
                     timeDelta = inMaxSeconds - inPrevSeconds
                     distanceDelta = haversine(inPrevLon, inPrevLat, inLon, inLat)
                     if (timeDelta > 0) and ((distanceDelta / timeDelta) > 0.0444444444):
