@@ -20,7 +20,7 @@ outdirectory = sys.argv[1]
 out_filename_prefix = sys.argv[2]
 
 # Define an array of output filenames, based on the provided prefix, to store the parsed results.
-out_filename_array = [out_filename_prefix + "_1_2_3.csv", out_filename_prefix + "_18_19.csv", out_filename_prefix + "_other.csv"]
+out_filename_array = [out_filename_prefix + "_1_2_3.csv", out_filename_prefix + "_18_19.csv", out_filename_prefix + "_27.csv", out_filename_prefix + "_other.csv"]
 
 # Check each potential output file for existence before running.
 for outfile_index in range(len(out_filename_array) - 1):
@@ -41,14 +41,17 @@ for outfile_index in range(len(out_filename_array)):
 
 # Print a header line for each of the message type groups to be extracted from the eE AIS data.
 
-#1_2_3
+#1_2_3 - Type A
 out_message_records[0].write("ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc\n");
 
-#18_19 
+#18_19 - Type B
 out_message_records[1].write("ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc\n");
+
+#27 - Long range / satellit
+out_message_records[2].write("ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc\n");
     
 #other
-out_message_records[2].write("Field set depends on message type, see split_eE_AIS_for_PG_base_table_w_parsing.py \n")
+out_message_records[3].write("Field set depends on message type, see split_eE_AIS_for_PG_base_table_w_parsing.py \n")
 
 # Process each input file reference passed as input.
 for infile_index in range(len(sys.argv) - 3):
@@ -78,7 +81,7 @@ for infile_index in range(len(sys.argv) - 3):
                 if(input_msg_type in ("1", "2", "3")):
 
                     # ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc
-                    out_message_records[0].write(pipetokenizedline[3] + "," + pipetokenizedline[1] + "," + pipetokenizedline[0] + "," + pipetokenizedline[13] + "," + pipetokenizedline[15] + "," + pipetokenizedline[19] + "," + pipetokenizedline[20] + "," + pipetokenizedline[18] + "," + pipetokenizedline[17] + "," + pipetokenizedline[16] + "\n")
+                    out_message_records[0].write(pipetokenizedline[3].strip() + "," + pipetokenizedline[1].strip() + "," + pipetokenizedline[0].strip() + "," + pipetokenizedline[13].strip() + "," + pipetokenizedline[15].strip() + "," + pipetokenizedline[19].strip() + "," + pipetokenizedline[20].strip() + "," + pipetokenizedline[18].strip() + "," + pipetokenizedline[17].strip() + "," + pipetokenizedline[16].strip() + "\n")
 
 
                 #18_19 
@@ -86,12 +89,19 @@ for infile_index in range(len(sys.argv) - 3):
 
                     #ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc
                     #3,1,0,none,19,23,24,22,21,20
-                    out_message_records[1].write(pipetokenizedline[3] + "," + pipetokenizedline[1] + "," + pipetokenizedline[0] + "," + "" + "," + pipetokenizedline[19] + "," + pipetokenizedline[23] + "," + pipetokenizedline[24] + "," + pipetokenizedline[22] + "," + pipetokenizedline[21] + "," + pipetokenizedline[20] + "," + "\n")
+                    out_message_records[1].write(pipetokenizedline[3].strip() + "," + pipetokenizedline[1].strip() + "," + pipetokenizedline[0].strip() + "," + "" + "," + pipetokenizedline[19].strip() + "," + pipetokenizedline[23].strip() + "," + pipetokenizedline[24].strip() + "," + pipetokenizedline[22].strip() + "," + pipetokenizedline[21].strip() + "," + pipetokenizedline[20].strip() + "," + "\n")
+                    
+                #27
+                elif(input_msg_type in ("27")):
+                    #ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc
+                    #3,1,0,13,14,18,none,16,17,15
+                    out_message_records[2].write(pipetokenizedline[3].strip() + "," + pipetokenizedline[1].strip() + "," + pipetokenizedline[0].strip() + "," + pipetokenizedline[13].strip() + "," + pipetokenizedline[14].strip() + "," + pipetokenizedline[18].strip() + "," + "" + "," + pipetokenizedline[17].strip() + "," + pipetokenizedline[16].strip() + "," + pipetokenizedline[15].strip() + "," + "\n")
+
                     
                 #other - write out input line as received.
                 else:
                 
-                    out_message_records[2].write(line)
+                    out_message_records[3].write(line)
                     
                 # Increment the current input line counter.
                 in_line_counter += 1
@@ -100,7 +110,7 @@ for infile_index in range(len(sys.argv) - 3):
 for outfile_index in range(len(out_message_records)):  
     out_message_records[outfile_index].close()
     
-# Run through the 1,2,3 and 18,19 parsed files (all but last in array out_filename_array, 
+# Run through the 1,2,3; 18,19 and 27 parsed files (all but last in array out_filename_array, 
 # allocating the records within to new output files on the basis of mmsi.
 for data_index in range(len(out_filename_array) - 1):
     
