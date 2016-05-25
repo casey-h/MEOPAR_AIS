@@ -42,28 +42,28 @@ class bitfield:
     # or "n/a".
     def __init__(self, name, width, dtype, oob, legend,
                  validator=None, formatter=None, conditional=None):
-        self.name = name		# Fieldname, for internal use and JSON
-        self.width = width		# Bit width
-        self.type = dtype		# Data type: signed/unsigned/string/raw
-        self.oob = oob			# Out-of-band value to be shown as n/a
-        self.legend = legend		# Human-friendly description of field
-        self.validator = validator	# Validation checker
-        self.formatter = formatter	# Custom reporting hook.
-        self.conditional = conditional	# Evaluation guard for this field
+        self.name = name        # Fieldname, for internal use and JSON
+        self.width = width      # Bit width
+        self.type = dtype       # Data type: signed/unsigned/string/raw
+        self.oob = oob          # Out-of-band value to be shown as n/a
+        self.legend = legend        # Human-friendly description of field
+        self.validator = validator  # Validation checker
+        self.formatter = formatter  # Custom reporting hook.
+        self.conditional = conditional  # Evaluation guard for this field
 
 class spare:
     "Describes spare bits,, not to be interpreted."
     def __init__(self, width, conditional=None):
         self.width = width
-        self.conditional = conditional	# Evaluation guard for this field
+        self.conditional = conditional  # Evaluation guard for this field
 
 class dispatch:
     "Describes how to dispatch to a message type variant on a subfield value."
     def __init__(self, fieldname, subtypes, compute=lambda x: x, conditional=None):
-        self.fieldname = fieldname	# Value of view to dispatch on
-        self.subtypes = subtypes	# Possible subtypes to dispatch to
-        self.compute = compute		# Pass value through this pre-dispatch
-        self.conditional = conditional	# Evaluation guard for this field
+        self.fieldname = fieldname  # Value of view to dispatch on
+        self.subtypes = subtypes    # Possible subtypes to dispatch to
+        self.compute = compute      # Pass value through this pre-dispatch
+        self.conditional = conditional  # Evaluation guard for this field
 
 # Message-type-specific information begins here. There are four
 # different kinds of things in it: (1) string tables for expanding
@@ -75,22 +75,22 @@ class dispatch:
 # code generation in Python, Java, Perl, etc.
 
 cnb_status_legends = (
-	"Under way using engine",
-	"At anchor",
-	"Not under command",
-	"Restricted manoeuverability",
-	"Constrained by her draught",
-	"Moored",
-	"Aground",
-	"Engaged in fishing",
-	"Under way sailing",
-	"Reserved for HSC",
-	"Reserved for WIG",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Reserved",
-	"Not defined",
+    "Under way using engine",
+    "At anchor",
+    "Not under command",
+    "Restricted manoeuverability",
+    "Constrained by her draught",
+    "Moored",
+    "Aground",
+    "Engaged in fishing",
+    "Under way sailing",
+    "Reserved for HSC",
+    "Reserved for WIG",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Reserved",
+    "Not defined",
     )
 
 def cnb_rot_format(n):
@@ -142,7 +142,7 @@ cnb = (
              formatter=cnb_latlon_format),
     bitfield("lat",     27, 'signed',   0x3412140,  "Latitude",
              formatter=cnb_latlon_format),
-    bitfield("course",  12, 'unsigned',	0xe10,      "Course Over Ground",
+    bitfield("course",  12, 'unsigned', 0xe10,      "Course Over Ground",
              formatter=cnb_course_format),
     bitfield("heading",  9, 'unsigned', 511,        "True Heading"),
     bitfield("second",   6, 'unsigned', None,       "Time Stamp",
@@ -154,15 +154,15 @@ cnb = (
 )
 
 epfd_type_legends = (
-	"Undefined",
-	"GPS",
-	"GLONASS",
-	"Combined GPS/GLONASS",
-	"Loran-C",
-	"Chayka",
-	"Integrated navigation system",
-	"Surveyed",
-	"Galileo",
+    "Undefined",
+    "GPS",
+    "GLONASS",
+    "Combined GPS/GLONASS",
+    "Loran-C",
+    "Chayka",
+    "Integrated navigation system",
+    "Surveyed",
+    "Galileo",
     )
 
 type4 = (
@@ -186,106 +186,106 @@ type4 = (
     )
 
 ship_type_legends = (
-	"Not available",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Wing in ground (WIG) - all ships of this type",
-	"Wing in ground (WIG) - Hazardous category A",
-	"Wing in ground (WIG) - Hazardous category B",
-	"Wing in ground (WIG) - Hazardous category C",
-	"Wing in ground (WIG) - Hazardous category D",
-	"Wing in ground (WIG) - Reserved for future use",
-	"Wing in ground (WIG) - Reserved for future use",
-	"Wing in ground (WIG) - Reserved for future use",
-	"Wing in ground (WIG) - Reserved for future use",
-	"Wing in ground (WIG) - Reserved for future use",
-	"Fishing",
-	"Towing",
-	"Towing: length exceeds 200m or breadth exceeds 25m",
-	"Dredging or underwater ops",
-	"Diving ops",
-	"Military ops",
-	"Sailing",
-	"Pleasure Craft",
-	"Reserved",
-	"Reserved",
-	"High speed craft (HSC) - all ships of this type",
-	"High speed craft (HSC) - Hazardous category A",
-	"High speed craft (HSC) - Hazardous category B",
-	"High speed craft (HSC) - Hazardous category C",
-	"High speed craft (HSC) - Hazardous category D",
-	"High speed craft (HSC) - Reserved for future use",
-	"High speed craft (HSC) - Reserved for future use",
-	"High speed craft (HSC) - Reserved for future use",
-	"High speed craft (HSC) - Reserved for future use",
-	"High speed craft (HSC) - No additional information",
-	"Pilot Vessel",
-	"Search and Rescue vessel",
-	"Tug",
-	"Port Tender",
-	"Anti-pollution equipment",
-	"Law Enforcement",
-	"Spare - Local Vessel",
-	"Spare - Local Vessel",
-	"Medical Transport",
-	"Ship according to RR Resolution No. 18",
-	"Passenger - all ships of this type",
-	"Passenger - Hazardous category A",
-	"Passenger - Hazardous category B",
-	"Passenger - Hazardous category C",
-	"Passenger - Hazardous category D",
-	"Passenger - Reserved for future use",
-	"Passenger - Reserved for future use",
-	"Passenger - Reserved for future use",
-	"Passenger - Reserved for future use",
-	"Passenger - No additional information",
-	"Cargo - all ships of this type",
-	"Cargo - Hazardous category A",
-	"Cargo - Hazardous category B",
-	"Cargo - Hazardous category C",
-	"Cargo - Hazardous category D",
-	"Cargo - Reserved for future use",
-	"Cargo - Reserved for future use",
-	"Cargo - Reserved for future use",
-	"Cargo - Reserved for future use",
-	"Cargo - No additional information",
-	"Tanker - all ships of this type",
-	"Tanker - Hazardous category A",
-	"Tanker - Hazardous category B",
-	"Tanker - Hazardous category C",
-	"Tanker - Hazardous category D",
-	"Tanker - Reserved for future use",
-	"Tanker - Reserved for future use",
-	"Tanker - Reserved for future use",
-	"Tanker - Reserved for future use",
-	"Tanker - No additional information",
-	"Other Type - all ships of this type",
-	"Other Type - Hazardous category A",
-	"Other Type - Hazardous category B",
-	"Other Type - Hazardous category C",
-	"Other Type - Hazardous category D",
-	"Other Type - Reserved for future use",
-	"Other Type - Reserved for future use",
-	"Other Type - Reserved for future use",
-	"Other Type - Reserved for future use",
-	"Other Type - no additional information",
+    "Not available",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Wing in ground (WIG) - all ships of this type",
+    "Wing in ground (WIG) - Hazardous category A",
+    "Wing in ground (WIG) - Hazardous category B",
+    "Wing in ground (WIG) - Hazardous category C",
+    "Wing in ground (WIG) - Hazardous category D",
+    "Wing in ground (WIG) - Reserved for future use",
+    "Wing in ground (WIG) - Reserved for future use",
+    "Wing in ground (WIG) - Reserved for future use",
+    "Wing in ground (WIG) - Reserved for future use",
+    "Wing in ground (WIG) - Reserved for future use",
+    "Fishing",
+    "Towing",
+    "Towing: length exceeds 200m or breadth exceeds 25m",
+    "Dredging or underwater ops",
+    "Diving ops",
+    "Military ops",
+    "Sailing",
+    "Pleasure Craft",
+    "Reserved",
+    "Reserved",
+    "High speed craft (HSC) - all ships of this type",
+    "High speed craft (HSC) - Hazardous category A",
+    "High speed craft (HSC) - Hazardous category B",
+    "High speed craft (HSC) - Hazardous category C",
+    "High speed craft (HSC) - Hazardous category D",
+    "High speed craft (HSC) - Reserved for future use",
+    "High speed craft (HSC) - Reserved for future use",
+    "High speed craft (HSC) - Reserved for future use",
+    "High speed craft (HSC) - Reserved for future use",
+    "High speed craft (HSC) - No additional information",
+    "Pilot Vessel",
+    "Search and Rescue vessel",
+    "Tug",
+    "Port Tender",
+    "Anti-pollution equipment",
+    "Law Enforcement",
+    "Spare - Local Vessel",
+    "Spare - Local Vessel",
+    "Medical Transport",
+    "Ship according to RR Resolution No. 18",
+    "Passenger - all ships of this type",
+    "Passenger - Hazardous category A",
+    "Passenger - Hazardous category B",
+    "Passenger - Hazardous category C",
+    "Passenger - Hazardous category D",
+    "Passenger - Reserved for future use",
+    "Passenger - Reserved for future use",
+    "Passenger - Reserved for future use",
+    "Passenger - Reserved for future use",
+    "Passenger - No additional information",
+    "Cargo - all ships of this type",
+    "Cargo - Hazardous category A",
+    "Cargo - Hazardous category B",
+    "Cargo - Hazardous category C",
+    "Cargo - Hazardous category D",
+    "Cargo - Reserved for future use",
+    "Cargo - Reserved for future use",
+    "Cargo - Reserved for future use",
+    "Cargo - Reserved for future use",
+    "Cargo - No additional information",
+    "Tanker - all ships of this type",
+    "Tanker - Hazardous category A",
+    "Tanker - Hazardous category B",
+    "Tanker - Hazardous category C",
+    "Tanker - Hazardous category D",
+    "Tanker - Reserved for future use",
+    "Tanker - Reserved for future use",
+    "Tanker - Reserved for future use",
+    "Tanker - Reserved for future use",
+    "Tanker - No additional information",
+    "Other Type - all ships of this type",
+    "Other Type - Hazardous category A",
+    "Other Type - Hazardous category B",
+    "Other Type - Hazardous category C",
+    "Other Type - Hazardous category D",
+    "Other Type - Reserved for future use",
+    "Other Type - Reserved for future use",
+    "Other Type - Reserved for future use",
+    "Other Type - Reserved for future use",
+    "Other Type - no additional information",
 )
 
 type5 = (
@@ -687,38 +687,38 @@ type20 = (
     )
 
 aide_type_legends = (
-	"Unspecified",
-	"Reference point",
-	"RACON",
-	"Fixed offshore structure",
-	"Spare, Reserved for future use.",
-	"Light, without sectors",
-	"Light, with sectors",
-	"Leading Light Front",
-	"Leading Light Rear",
-	"Beacon, Cardinal N",
-	"Beacon, Cardinal E",
-	"Beacon, Cardinal S",
-	"Beacon, Cardinal W",
-	"Beacon, Port hand",
-	"Beacon, Starboard hand",
-	"Beacon, Preferred Channel port hand",
-	"Beacon, Preferred Channel starboard hand",
-	"Beacon, Isolated danger",
-	"Beacon, Safe water",
-	"Beacon, Special mark",
-	"Cardinal Mark N",
-	"Cardinal Mark E",
-	"Cardinal Mark S",
-	"Cardinal Mark W",
-	"Port hand Mark",
-	"Starboard hand Mark",
-	"Preferred Channel Port hand",
-	"Preferred Channel Starboard hand",
-	"Isolated danger",
-	"Safe Water",
-	"Special Mark",
-	"Light Vessel / LANBY / Rigs",
+    "Unspecified",
+    "Reference point",
+    "RACON",
+    "Fixed offshore structure",
+    "Spare, Reserved for future use.",
+    "Light, without sectors",
+    "Light, with sectors",
+    "Leading Light Front",
+    "Leading Light Rear",
+    "Beacon, Cardinal N",
+    "Beacon, Cardinal E",
+    "Beacon, Cardinal S",
+    "Beacon, Cardinal W",
+    "Beacon, Port hand",
+    "Beacon, Starboard hand",
+    "Beacon, Preferred Channel port hand",
+    "Beacon, Preferred Channel starboard hand",
+    "Beacon, Isolated danger",
+    "Beacon, Safe water",
+    "Beacon, Special mark",
+    "Cardinal Mark N",
+    "Cardinal Mark E",
+    "Cardinal Mark S",
+    "Cardinal Mark W",
+    "Port hand Mark",
+    "Starboard hand Mark",
+    "Preferred Channel Port hand",
+    "Preferred Channel Starboard hand",
+    "Isolated danger",
+    "Safe Water",
+    "Special Mark",
+    "Light Vessel / LANBY / Rigs",
         )
 
 type21 = (
@@ -769,22 +769,22 @@ type22 = (
     )
 
 station_type_legends = (
-	"All types of mobiles",
-	"Reserved for future use",
-	"All types of Class B mobile stations",
-	"SAR airborne mobile station",
-	"Aid to Navigation station",
-	"Class B shipborne mobile station",
-	"Regional use and inland waterways",
-	"Regional use and inland waterways",
-	"Regional use and inland waterways",
-	"Regional use and inland waterways",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
-	"Reserved for future use",
+    "All types of mobiles",
+    "Reserved for future use",
+    "All types of Class B mobile stations",
+    "SAR airborne mobile station",
+    "Aid to Navigation station",
+    "Class B shipborne mobile station",
+    "Regional use and inland waterways",
+    "Regional use and inland waterways",
+    "Regional use and inland waterways",
+    "Regional use and inland waterways",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
+    "Reserved for future use",
         )
 
 type23 = (
@@ -873,7 +873,7 @@ type27 = (
 aivdm_decode = (
     bitfield('msgtype',       6, 'unsigned',    0, "Message Type",
         validator=lambda n: n > 0 and n <= 27),
-    bitfield('repeat',	      2, 'unsigned', None, "Repeat Indicator"),
+    bitfield('repeat',        2, 'unsigned', None, "Repeat Indicator"),
     bitfield('mmsi',         30, 'unsigned',    0, "MMSI"),
     # This is the master dispatch on AIS message type
     dispatch('msgtype',      {0:None,    1:cnb,    2:cnb,     3:cnb,    4:type4,
@@ -1072,7 +1072,7 @@ def packet_scanner(source,skiperr=False):
         # Strip off USCG metadata 
         line = re.sub(r"(?<=\*[0-9A-F][0-9A-F]),.*", "", line)
         # Compute CRC-16 checksum
-        packet = line[1:-3]	# Strip leading !, trailing * and CRC
+        packet = line[1:-3] # Strip leading !, trailing * and CRC
         csum = 0
         for c in packet:
             csum ^= ord(c)
@@ -1226,15 +1226,14 @@ def parse_ais_messages(source, scaled=False, skiperr=False, verbose=0):
 if __name__ == "__main__":
     import sys, getopt
 
-    usage_msg = ("\nUsage: gpsd_ais_NM4_parsing.py -? -s -c -d -h -j -m -s -x -t {msgtypes} -f {inputfile} \n\n"
+    usage_msg = ("\nUsage: gpsd_ais_NM4_parsing.py -? -c -d -h -j -m -s -x -t {msgtypes} -f {inputfile} \n\n"
         "-?: Display this usage message and exit \n"
-        "-s: Present values in 'scaled' format -- translate from AIS storage units to \"real-world\" \n"
         "-c: Report in pipe-delimited format \n"
         "-d: Dump in human-readable format (default) \n"
         "-h: Output a histogram of type frequencies \n"
         "-j: Dump in JSON format \n"
         "-m: Dump malformed packets as raw\n"
-        "-j: Report AIS in scaled (i.e. unit-converted) form \n"
+        "-s: Report AIS in scaled (i.e. unit-converted) form \n"
         "-x: Do not skip over decoding errors (instead halt / throw exception)\n"
         "-t {msgtypes}: Filter for specific messagetypes, where {msgtypes} is a comma-separated list of types \n"
         "-f {inputfile}: Input file to be read, where {inputfile} is the name of the file to be read (optionally, a globbable wildcard under Windows only). \n")
@@ -1417,7 +1416,7 @@ Eric S. Raymond. Other portions of the GPSD code are Copyright (c)
 Copyright (c) 2005 by Eric S. Raymond.  For other copyrights, see
 individual files.
 
-			BSD LICENSE
+            BSD LICENSE
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions

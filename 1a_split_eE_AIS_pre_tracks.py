@@ -10,7 +10,7 @@ import time
 # Usage string for the script.
 usage_string = "Usage: split_eE_AIS_pre_tracks.py outputdirectory outputfilenameprefix inputfilename1 [inputfilename2 ...] \n\nSplits pre-parsed position-referenced eE AIS records (Postgres Export) into sub files by message type, then mmsi pre track creation. Developed in support of the NEMES project (http://www.nemesproject.com/).\n"
 
-# If at least two arguments are not provided, display an usage message.
+# If at least three arguments are not provided, display an usage message.
 if (len(sys.argv) < 4):
     print usage_string
     quit()
@@ -47,7 +47,7 @@ out_message_records[0].write("ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,l
 #18_19 - Type B
 out_message_records[1].write("ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc\n");
 
-#27 - Long range / satellit
+#27 - Long range / satellite
 out_message_records[2].write("ext_timestamp,msgid,mmsi,nav_stat,sog,cog,tr_hdg,lat,lon,pos_acc\n");
     
 #other
@@ -125,7 +125,10 @@ for data_index in range(len(out_filename_array) - 1):
             # Verify that the incoming line has the correct number of tokens.
             if(len(tokenizedline) > 8):
                 
-                mmsi = tokenizedline[2];
+                # Note: because the parser for NM4 data returns n/a for missing mmsi
+                # (unlike the original eE dataset, which uses 0), added a catch here
+                # to replace the / values with _ to generate valid filenames. 
+                mmsi = tokenizedline[2].replace('/','_')
                 
                 try:
                     outfile = open(outdirectory  + "/" + mmsi + ".txt", 'a')

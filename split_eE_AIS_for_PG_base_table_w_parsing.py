@@ -10,6 +10,7 @@
 from glob import glob
 import sys
 import os
+import re
 
 # Stackoverflow sourced short f'n for testing whether / not string values are numeric, modified from 
 # source to account for multiple number types. 
@@ -164,12 +165,27 @@ for infile_index in range(len(sys.argv) - 3):
                         longitude_string = tokenizedline[28]
                         latitude_string = tokenizedline[29]
                         
-                        # If either of the coordinates are not parseable as floating point numbers, update the value to null.
+                        # If either of the coordinates are not parseable as floating point numbers, check to see if they're just 
+                        # improperly formatted exponenets (e.g. "1.0E2.0" -- trailing .0 is superfluous and wrong {unless the 
+                        # system supports fractional powers of 10}, which python doesn't) -- either fix the value, or set it to 
+                        # null.
                         if (not(is_float(longitude_string))): 
-                            longitude_string = "\N"
+                            #suffix_search = re.search('([0-9\.]+E[0-9]+)(\.[0-9]+)\Z',longitude_string)
+                            suffix_search = re.search('([-]{0,1}[0-9]+[\.]{0,1}E[+-]{0,1}[0-9]+)(\.[0-9]+)\Z',longitude_string)
+                            if(suffix_search is None):
+                                longitude_string = "\N"
+                            else:
+                                print "Translating: " + longitude_string + " to: " + suffix_search.group(1)
+                                longitude_string = suffix_search.group(1)
                         
                         if (not(is_float(latitude_string))):
-                            latitude_string = "\N"
+                            #suffix_search = re.search('([0-9\.]+E[0-9]+)(\.[0-9]+)\Z',latitude_string)
+                            suffix_search = re.search('([-]{0,1}[0-9]+[\.]{0,1}E[+-]{0,1}[0-9]+)(\.[0-9]+)\Z',latitude_string)
+                            if(suffix_search is None):
+                                latitude_string = "\N"
+                            else:
+                                print "Translating: " + latitude_string + " to: " + suffix_search.group(1)
+                                latitude_string = suffix_search.group(1)
 
                     # If the message type suggests that longitude and latitude fields should be present, verify that the values are actually coordinates.            
                     elif(input_msg_type in POSITIONAL_MESSAGE_TYPES):
@@ -177,22 +193,37 @@ for infile_index in range(len(sys.argv) - 3):
                         longitude_string = tokenizedline[28]
                         latitude_string = tokenizedline[29]
                         
-                        # If either of the coordinates are not parseable as floating point numbers, update the value to null and set the parse error flag for the row.
+                        # If either of the coordinates are not parseable as floating point numbers, check to see if they're just 
+                        # improperly formatted exponenets (e.g. "1.0E2.0" -- trailing .0 is superfluous and wrong {unless the 
+                        # system supports fractional powers of 10}, which python doesn't) -- either fix the value, or set it to 
+                        # null.
                         if (not(is_float(longitude_string))): 
-                            #CCC Debug
-                            print "Longitude parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + longitude_string + ")"
                         
-                            longitude_string = "\N"
-                            parse_error_flag = True
+                            #suffix_search = re.search('([0-9\.]+E[0-9]+)(\.[0-9]+)\Z',longitude_string)
+                            suffix_search = re.search('([-]{0,1}[0-9]+[\.]{0,1}E[+-]{0,1}[0-9]+)(\.[0-9]+)\Z',longitude_string)
+                            if(suffix_search is None):
+                                #CCC Debug
+                                print "Longitude parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + longitude_string + ")"
                             
+                                longitude_string = "\N"
+                                parse_error_flag = True
+                            else:
+                                print "Translating: " + longitude_string + " to: " + suffix_search.group(1)
+                                longitude_string = suffix_search.group(1)
 
                         if (not(is_float(latitude_string))):
-                            #CCC Debug
-                            print "Latitude parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + latitude_string + ")"
+                        
+                            #suffix_search = re.search('([0-9\.]+E[0-9]+)(\.[0-9]+)\Z',latitude_string)
+                            suffix_search = re.search('([-]{0,1}[0-9]+[\.]{0,1}E[+-]{0,1}[0-9]+)(\.[0-9]+)\Z',latitude_string)
+                            if(suffix_search is None):
+                                #CCC Debug
+                                print "Latitude parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + latitude_string + ")"
 
-                            latitude_string = "\N"
-                            parse_error_flag = True
-                            
+                                latitude_string = "\N"
+                                parse_error_flag = True
+                            else:
+                                print "Translating: " + latitude_string + " to: " + suffix_search.group(1)
+                                latitude_string = suffix_search.group(1)
 
                     # Attempt to parse coordinate values for all non-positional message types, but do not flag errors when 
                     # coordinates are not defined.
@@ -201,12 +232,28 @@ for infile_index in range(len(sys.argv) - 3):
                         longitude_string = tokenizedline[28]
                         latitude_string = tokenizedline[29]
                         
-                        # If either of the coordinates are not parseable as floating point numbers, update the value to null.
+                        # If either of the coordinates are not parseable as floating point numbers, check to see if they're just 
+                        # improperly formatted exponenets (e.g. "1.0E2.0" -- trailing .0 is superfluous and wrong {unless the 
+                        # system supports fractional powers of 10}, which python doesn't) -- either fix the value, or set it to 
+                        # null.
                         if (not(is_float(longitude_string))): 
-                            longitude_string = "\N"
+                            #suffix_search = re.search('([0-9\.]+E[0-9]+)(\.[0-9]+)\Z',longitude_string)
+                            suffix_search = re.search('([-]{0,1}[0-9]+[\.]{0,1}E[+-]{0,1}[0-9]+)(\.[0-9]+)\Z',longitude_string)
+                            if(suffix_search is None):
+                                longitude_string = "\N"
+                            else:
+                                print "Translating: " + longitude_string + " to: " + suffix_search.group(1)
+                                longitude_string = suffix_search.group(1)
                         
                         if (not(is_float(latitude_string))):
-                            latitude_string = "\N"
+                            #suffix_search = re.search('([0-9\.]+E[0-9]+)(\.[0-9]+)\Z',latitude_string)
+                            suffix_search = re.search('([-]{0,1}[0-9]+[\.]{0,1}E[+-]{0,1}[0-9]+)(\.[0-9]+)\Z',latitude_string)
+                            
+                            if(suffix_search is None):
+                                latitude_string = "\N"
+                            else:
+                                print "Translating: " + latitude_string + " to: " + suffix_search.group(1)
+                                latitude_string = suffix_search.group(1)
                     
                     # If the date value is not of the expected length, or if it is, but has unexpected non-numeric components, set the parse error 
                     #flag and insert a null in place of the date.

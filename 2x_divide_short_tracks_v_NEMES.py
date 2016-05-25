@@ -81,7 +81,7 @@ def bearing(lon1, lat1, lon2, lat2):
 path_separator = sep
 
 #DEBUG
-print path_separator
+#print path_separator
 
 if (len(sys.argv) < 3):
     print 'Usage: divide_short_tracks_v_NEMES.py outputdirectory inputfilename [inputfilename ...] ... \n Adds track delineation to a number of input files of vessel underway data, predivided into single files per mmsi under the specified output directory.\n'
@@ -141,7 +141,20 @@ for infile_index in range(len(sys.argv) - 2):
                 longitude = tokenizedline[8]
                 pos_acc = tokenizedline[9]
                 
-                timevalstruct = time.strptime(datetimetoken, "%Y%m%d_%H%M%S")
+                # If the time token contains an underscore, assume the time format "%Y%m%d_%H%M%S", 
+                # else if it contains a T, assume the time format "%Y%m%dT%H%M%S.000Z", otherwise 
+                # abort for unrecognized time format.
+                if (datetimetoken.find("_") > -1):
+                    timevalstruct = time.strptime(datetimetoken, "%Y%m%d_%H%M%S")
+                elif (datetimetoken.find("T") > -1):
+                    timevalstruct = time.strptime(datetimetoken, "%Y%m%dT%H%M%S.000Z")
+                else:
+                    print "Unrecognized date/time format, aborting: " + datetimetoken + "\n"
+                    out_vessel_records.close()
+                    out_stationary_records.close()
+                    out_invalid_records.close()
+                    quit()
+            
                 timeval = time.mktime(timevalstruct)
 
                 # If the vessel's position is outside the reasonable range (e.g. 91 indicating unavailable within eE AIS, or n/a 
