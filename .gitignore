@@ -13,6 +13,3 @@ shapefile.pyc
 04*
 
 # Extra parsers, non production
-0c_CSA_TAIS_pre_parser.py
-Message_8_Parser.py
-tracks_into_grids_gdal_mp.py
