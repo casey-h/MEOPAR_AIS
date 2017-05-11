@@ -147,7 +147,9 @@ for infile_index in range(len(sys.argv) - 2):
                 if (datetimetoken.find("_") > -1):
                     timevalstruct = time.strptime(datetimetoken, "%Y%m%d_%H%M%S")
                 elif (datetimetoken.find("T") > -1):
-                    timevalstruct = time.strptime(datetimetoken, "%Y%m%dT%H%M%S.000Z")
+                    #timevalstruct = time.strptime(datetimetoken, "%Y%m%dT%H%M%S.000Z")
+                    # Added %f in an attempt to handle milliseconds for T-AIS (http://stackoverflow.com/questions/698223/how-can-i-parse-a-time-string-containing-milliseconds-in-it-with-python)
+                    timevalstruct = time.strptime(datetimetoken, "%Y%m%dT%H%M%S.%fZ")
                 else:
                     print "Unrecognized date/time format, aborting: " + datetimetoken + "\n"
                     out_vessel_records.close()

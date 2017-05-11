@@ -8,3 +8,6 @@ backup/
 #shapefile.py, used for testing / running scripts.
 shapefile.py
 shapefile.pyc
+
+# Testing documentation in 04
+04*

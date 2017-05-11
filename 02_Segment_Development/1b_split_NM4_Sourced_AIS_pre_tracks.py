@@ -20,7 +20,7 @@ def is_number(s):
 # Usage string for the script.
 usage_string = "Usage: split_NM4_Sourced_AIS_pre_tracks_NEMES.py outputdirectory outputfilenameprefix inputfilename1 [inputfilename2 ...] \n\nSplits pre-parsed position-referenced AIS records, as provided by ONC, parsed by 0_gpsd_ais_ONC_Parsing.py into sub files by message type, while re-ordering the incoming data to match the format expected by the track division script, 2_divide_tracks_v_NEMES.py. Developed in support of the NEMES project (http://www.nemesproject.com/).\n"
 
-# If at least two arguments are not provided, display an usage message.
+# If at least three arguments are not provided, display an usage message.
 if (len(sys.argv) < 4):
     print usage_string
     quit()

@@ -52,6 +52,10 @@ driver = ogr.GetDriverByName("ESRI Shapefile")
 # Create the output data source.
 out_data_source = driver.CreateDataSource(out_int_directory)
 
+if out_data_source is None:
+    print "\nError encountered when opening output folder: " + out_int_directory + "\\" + " \nAborting."
+    quit()
+
 # Create the output layer.
 output_layer = out_data_source.CreateLayer(out_int_filename, line_srs, ogr.wkbMultiLineString)
 
