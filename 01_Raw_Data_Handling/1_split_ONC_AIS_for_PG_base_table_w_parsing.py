@@ -48,7 +48,8 @@ POSITIONAL_MESSAGE_TYPES = [1, 2, 3, 18]
 
 # If at least four arguments are not provided, display an usage message.
 if (len(sys.argv) < 4):
-    print USAGE_STRING
+    # Adjust to print function / python3 CH 20180107 (Add parens)
+    print(USAGE_STRING)
     quit()
 
 # Retrieve the datafile date (as a component of the unique_id to be generated)
@@ -59,7 +60,8 @@ out_filename = sys.argv[2]
 
 # Check the output file for existence before running.
 if os.path.exists(out_filename):
-    print "Error, output file exists: (" + out_filename +  ") aborting."
+    # Adjust to print function / python3 CH 20180107 (Add parens)
+    print("Error, output file exists: (" + out_filename +  ") aborting.")
     quit()
         
 # Open the output file.
@@ -68,7 +70,8 @@ try:
     out_records = open(out_filename, 'w')
     
 except IOError:
-    print "Error opening output file: " + out_filename + "\n"
+    # Adjust to print function / python3 CH 20180107 (Add parens)
+    print("Error opening output file: " + out_filename + "\n")
     quit()
 
 # Retrieve the input filename.
@@ -76,13 +79,12 @@ in_filename = sys.argv[3]
 
 # Check the input file for existence before running.
 if( not os.path.exists(in_filename)):
-    print "Error, input file does not exist: (" + in_filename +  ") aborting."
+    # Adjust to print function / python3 CH 20180107 (Add parens)
+    print("Error, input file does not exist: (" + in_filename +  ") aborting.")
     quit()
     
-
 # Print a header line for each of the output files to be generated from the eE AIS data.
 # Do not write out a header line, gets in the way of \copy - out_records.write("Unq_ID\tMMSI\tLongitude\tLatitude\tDate\tMsgType\tParseError\tAIS_CSV\n")
-
 
 print("Processing: " + in_filename)
 
@@ -97,7 +99,8 @@ with open(in_filename,'r') as in_vessel_records:
     unq_ID_prefix = "OV" + datafile_date + "_"
     
     #CCCCC
-    print "unq_ID_prefix: " + unq_ID_prefix 
+    # Adjust to print function / python3 CH 20180107 (Add parens)
+    print("unq_ID_prefix: " + unq_ID_prefix)
 
     # Reset a counter into the input file.
     in_line_counter = 0
@@ -121,9 +124,10 @@ with open(in_filename,'r') as in_vessel_records:
             if(not input_msg_type in (1,2,3,5,18,27)):
 
                 #CCC Debug
-                print "Message type parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + str_msg_type + ")\n"
-                
-                str_msg_type  = "\N"
+                print("Message type parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + str_msg_type + ")\n")
+
+                # Had to create raw string to avoid Unicode error in Python 3 CH20180107 str_msg_type  = "\N"                
+                str_msg_type  = r"\N"
                 parse_error_flag = True
 
                 
@@ -131,9 +135,10 @@ with open(in_filename,'r') as in_vessel_records:
         except ValueError:
         
             #CCC Debug
-            print "Message type parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + str_msg_type + ")"
-        
-            str_msg_type = "\N"
+            print("Message type parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + str_msg_type + ")")
+
+            # Had to create raw string to avoid Unicode error in Python 3 CH20180107 str_msg_type  = "\N"
+            str_msg_type = r"\N"
             parse_error_flag = True
 
         # If the message type suggests that longitude and latitude fields should be present, verify that the values are actually coordinates.            
@@ -151,32 +156,38 @@ with open(in_filename,'r') as in_vessel_records:
                 suffix_search = re.search('([-]{0,1}[0-9]+[\.]{0,1}E[+-]{0,1}[0-9]+)(\.[0-9]+)\Z',longitude_string)
                 if(suffix_search is None):
 
-                    print "Longitude parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + longitude_string + ")"
-                
-                    longitude_string = "\N"
+                    # Adjust to print function / python3 CH 20180107 (Add parens)
+                    print("Longitude parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + longitude_string + ")")
+            
+                    # Had to create raw string to avoid Unicode error in Python 3 longitude_string  = "\N"
+                    longitude_string = r"\N"
                     parse_error_flag = True
                 else:
-                    print "Translating: " + longitude_string + " to: " + suffix_search.group(1)
+                    # Adjust to print function / python3 CH 20180107 (Add parens)
+                    print("Translating: " + longitude_string + " to: " + suffix_search.group(1))
                     longitude_string = suffix_search.group(1)
 
             if (not(is_float(latitude_string))):
                 
                 suffix_search = re.search('([-]{0,1}[0-9]+[\.]{0,1}E[+-]{0,1}[0-9]+)(\.[0-9]+)\Z',latitude_string)
                 if(suffix_search is None):
+                    # Adjust to print function / python3 CH 20180107 (Add parens)
+                    print("Latitude parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + latitude_string + ")")
 
-                    print "Latitude parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + latitude_string + ")"
-
-                    latitude_string = "\N"
+                    # Had to create raw string to avoid Unicode error in Python 3 CH20180107 latitude_string  = "\N"
+                    latitude_string = r"\N"
                     parse_error_flag = True
                 else:
-                    print "Translating: " + latitude_string + " to: " + suffix_search.group(1)
+                    # Adjust to print function / python3 CH 20180107 (Add parens)
+                    print("Translating: " + latitude_string + " to: " + suffix_search.group(1))
                     latitude_string = suffix_search.group(1)
 
         # Attempt to set coordinate values for all non-positional message types to \N
         else:
 
-            longitude_string = "\N"
-            latitude_string = "\N"      
+            # Had to create raw strings to avoid Unicode error in Python 3 CH 20180107
+            longitude_string = r"\N"
+            latitude_string = r"\N"      
         
         # If the date value is not of the expected length, or if it is, but has unexpected non-numeric components, set the parse error 
         #flag and insert a null in place of the date.
@@ -184,17 +195,20 @@ with open(in_filename,'r') as in_vessel_records:
 
         # Expected format: YYYYMMDDThhmmss.000Z
         if(len(raw_date_string) != 20):
-            print "Date string parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + raw_date_string + ")"
-        
+            # Adjust to print function / python3 CH 20180107 (Add parens)
+            print("Date string parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + raw_date_string + ")")
             parse_error_flag = True
-            parsed_date_string = "\N"
+            
+            # Had to create raw string to avoid Unicode error in Python 3 CH 20180107 parsed_date_string = "\N"
+            parsed_date_string = r"\N"
             
         elif (not(is_integer(raw_date_string[0:8])) or not(is_integer(raw_date_string[9:15]))):
             #CCC Debug
-            print "Date string parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + raw_date_string + ")"
-            
+            print("Date string parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + raw_date_string + ")")
             parse_error_flag = True
-            parsed_date_string = "\N"
+            
+            # Had to create raw string to avoid Unicode error in Python 3 CH 20180107 parsed_date_string = "\N"
+            parsed_date_string = r"\N"
             
         # If the date is ok, construct a Postgres-acceptable timestamp from the date_string value.
         #e.g 20141001T000005 -> 2014-10-01 00:00:05                 
@@ -206,10 +220,11 @@ with open(in_filename,'r') as in_vessel_records:
         if(not(is_integer(MMSI_string))):
         
             #CCC Debug
-            print "MMSI parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + MMSI_string + ")"
-            
+            print("MMSI parse error.(" + unq_ID_prefix + str(in_line_counter) + ": " + MMSI_string + ")")
             parse_error_flag = True
-            MMSI_string = "\N"
+            
+            # Had to create raw string to avoid Unicode error in Python 3 CH 20180107 MMSI_string = "\N"
+            MMSI_string = r"\N"
             
         # Output tokenized raw fields according to the message type observed, escape any backslashes in the input line.
         #1_2_3                
@@ -246,12 +261,13 @@ with open(in_filename,'r') as in_vessel_records:
             """
         
             if(len(tokenizedline) < 16):
-        
-                print "Parse error, invalid number of tokens in input line.\n Line: " + str(in_line_counter) + " - " + line.strip()
+                # Adjust to print function / python3 CH 20180107 (Add parens)
+                print("Parse error, invalid number of tokens in input line.\n Line: " + str(in_line_counter) + " - " + line.strip())
                 parse_error_flag = True
                 PG_safe_line = line.strip().replace("\\","\\\\")
                 
-                out_records.write(unq_ID_prefix + str(in_line_counter) + "\t" + "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" + str(int(parse_error_flag)) + "\t" + PG_safe_line.strip() + "\n")
+                # Had to create raw strings to avoid Unicode error in Python 3 CH 20180107 out_records.write(unq_ID_prefix + str(in_line_counter) + "\t" + "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" + str(int(parse_error_flag)) + "\t" + PG_safe_line.strip() + "\n")
+                out_records.write(unq_ID_prefix + str(in_line_counter) + "\t" + r"\N" + "\t" +  r"\N" + "\t" +  r"\N" + "\t" +  r"\N" + "\t" +  r"\N" + "\t" + str(int(parse_error_flag)) + "\t" + PG_safe_line.strip() + "\n")
                 continue
                 
             else:
@@ -301,11 +317,12 @@ with open(in_filename,'r') as in_vessel_records:
             """
 
             if(len(tokenizedline) < 21):
-        
-                print "Parse error, invalid number of tokens in input line.\n Line: " + str(in_line_counter) + " - " + line.strip()
+                # Adjust to print function / python3 CH 20180107 (Add parens)
+                print("Parse error, invalid number of tokens in input line.\n Line: " + str(in_line_counter) + " - " + line.strip())
                 parse_error_flag = True
                 PG_safe_line = line.strip().replace("\\","\\\\")
-                out_records.write(unq_ID_prefix + str(in_line_counter) + "\t" + "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" + str(int(parse_error_flag)) + "\t" + PG_safe_line.strip() + "\n")
+                # Had to create raw strings to avoid Unicode error in Python 3 CH 20180107 out_records.write(unq_ID_prefix + str(in_line_counter) + "\t" + "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" + str(int(parse_error_flag)) + "\t" + PG_safe_line.strip() + "\n")
+                out_records.write(unq_ID_prefix + str(in_line_counter) + "\t" + r"\N" + "\t" +  r"\N" + "\t" +  r"\N" + "\t" +  r"\N" + "\t" +  r"\N" + "\t" + str(int(parse_error_flag)) + "\t" + PG_safe_line.strip() + "\n")
                 continue
                 
             else:
@@ -315,18 +332,19 @@ with open(in_filename,'r') as in_vessel_records:
         elif(input_msg_type == 18):
 
             if(len(tokenizedline) < 21):
-
-                    print "Parse error, invalid number of tokens in input line.\n Line: " + str(in_line_counter) + " - " + line.strip()
+                    # Adjust to print function / python3 CH 20180107 (Add parens)
+                    print("Parse error, invalid number of tokens in input line.\n Line: " + str(in_line_counter) + " - " + line.strip())
                     parse_error_flag = True
                     PG_safe_line = line.strip().replace("\\","\\\\")
-                    out_records.write(unq_ID_prefix + str(in_line_counter) + "\t" + "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" + str(int(parse_error_flag)) + "\t" + PG_safe_line.strip() + "\n")
+                    # Had to create raw strings to avoid Unicode error in Python 3 CH 20180107 out_records.write(unq_ID_prefix + str(in_line_counter) + "\t" + "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" +  "\N" + "\t" + str(int(parse_error_flag)) + "\t" + PG_safe_line.strip() + "\n")
+                    out_records.write(unq_ID_prefix + str(in_line_counter) + "\t" + r"\N" + "\t" +  r"\N" + "\t" +  r"\N" + "\t" +  r"\N" + "\t" +  r"\N" + "\t" + str(int(parse_error_flag)) + "\t" + PG_safe_line.strip() + "\n")
                     continue
             else:
                 PG_safe_line = (tokenizedline[3] + "|" + tokenizedline[1] + "|" + tokenizedline[2] + "|" + tokenizedline[0] + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + "" + "|" + tokenizedline[5] + "|" + tokenizedline[6] + "|" + tokenizedline[7] + "|" + tokenizedline[8] + "|" + tokenizedline[9] + "|" + tokenizedline[10] + "|" + "" + "|" + tokenizedline[19] + "|"  + "" + "|" + tokenizedline[20] + "|" + "|" + tokenizedline[11] + "" + "|" + "" + "|" + "|" + tokenizedline[18] + "|" + tokenizedline[13] + "|" + tokenizedline[14] + "|" + tokenizedline[15] + "|" + tokenizedline[16] + "|" + tokenizedline[17] + "|" + tokenizedline[4] + "|" + tokenizedline[12] + "\n").replace("\\","\\\\")
             
         else:
             
-            print "Parse warning, unhandled message type, skipping \n Line: " + str(in_line_counter) + " - " + line.strip()
+            print("Parse warning, unhandled message type, skipping \n Line: " + str(in_line_counter) + " - " + line.strip())
             continue
             
         # Write the current line to output, formatted for ingest into Postgres.

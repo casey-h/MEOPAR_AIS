@@ -8,6 +8,8 @@
 # should be suitable for subsequent parsing via 0_gpsd_ais_NM4_parsing.py
 #
 
+# CH20171205 Added parentheses to print calls for Python3 compatibility.
+
 from glob import glob 
 import os, sys
 from datetime import datetime, timedelta
@@ -25,7 +27,7 @@ localtz = timezone('America/Halifax')
 
 # If at least two arguments are not provided, display an usage message.
 if (len(sys.argv) < 3):
-    print usage_msg
+    print (usage_msg)
     quit()
     
 # retrieve the output directory and filename prefix
@@ -33,7 +35,7 @@ out_filename = sys.argv[1]
 
 # Check the output file for existence before running.
 if os.path.exists(out_filename):
-    print "Error, output file exists: (" + out_filename +  ") aborting."
+    print ("Error, output file exists: (" + out_filename +  ") aborting.")
     quit()
         
 # Open the output file.
@@ -45,7 +47,7 @@ with open(out_filename,'w') as outfile:
         # Attempt wildcard expansion on any input file specified.
         for in_filename in glob(sys.argv[(2 + infile_index)]):
         
-            print("Processing: " + in_filename)
+            print ("Processing: " + in_filename)
             
             # Open the incoming filename.
             with open(in_filename,'r') as in_T_AIS_records:
@@ -53,7 +55,7 @@ with open(out_filename,'w') as outfile:
                 # Reset a counter into the input file.
                 in_line_counter = 0
             
-                # Initialize a date string to be stampted across output NMEA lines.
+                # Initialize a date string to be stamped across output NMEA lines.
                 curr_date_text = ""
             
                 # Iterate over the lines in the incoming records.

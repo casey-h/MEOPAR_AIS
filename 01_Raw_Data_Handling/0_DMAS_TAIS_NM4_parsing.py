@@ -1,15 +1,17 @@
 #!/usr/bin/env python
 #
-# A Python AIVDM/AIVDO decoder -- edits by CH (2015-08), tailoring code specifically 
-# for AIS NM4 datafiles as published by exactEarth. Includes handling of odd escaping
-# presented in prefix to !AIVDO strings, and adjusted command line flags to
+# A Python AIVDM/AIVDO decoder -- edits by CH (2015-08, 2017-05), tailoring code specifically 
+# for AIS datafiles as published via dmas.uvic.ca (but which conform to the 
+# anticipated message format as output by most units). Most critically, added handling
+# for per-line date prefixes to !AIVDO strings, and adjusted command line flags to
 # accept input files rather than drawing all input from stdin. Also added descriptive
-# help message, w/ flag descriptions, called by -? flag. Most edits are denoted with
-# comments and tagged 'CH' + the date in yyyymmdd format.
+# help message, w/ flag descriptions, called by -? flag.
 #
 # This file is Copyright (c) 2010 by the GPSD project
 # BSD terms apply: see COPYING at tail of this script for details.
 #
+# Begin Comments from GPSD:
+
 # This decoder works by defining a declarative pseudolanguage in which
 # to describe the process of extracting packed bitfields from an AIS
 # message, a set of tables which contain instructions in the pseudolanguage,
@@ -28,7 +30,14 @@
 # Decoding for 1-15, 18-21, and 24 have been tested against live data.
 # Decoding for 16-17, 22-23, and 25-27 have not.
 
+# End comments from GPSD
+
+
 from glob import glob 
+import os
+
+# Import the path separator.
+from os import sep
 
 # Here are the pseudoinstructions in the pseudolanguage.
 
@@ -833,7 +842,8 @@ type24b = (
              validator=lambda n: n >= 0 and n <= 99,
              formatter=ship_type_legends),
     bitfield("vendorid",     42, 'string',   None, "Vendor ID"),
-    dispatch("mmsi", {0:type24b1, 1:type24b2}, lambda m: 1 if `m`[:2]=='98' else 0),
+    # Replaced backticks w/ repr CH 20171225 dispatch("mmsi", {0:type24b1, 1:type24b2}, lambda m: 1 if `m`[:2]=='98' else 0),
+    dispatch("mmsi", {0:type24b1, 1:type24b2}, lambda m: 1 if repr(m)[:2]=='98' else 0),
     )
 
 type24 = (
@@ -987,9 +997,10 @@ class BitVector:
         "Used for dumping binary data."
         return str(self.bitlen) + ":" + "".join(map(lambda d: "%02x" % d, self.bits[:(self.bitlen + 7)/8]))
 
-import sys, exceptions, re
+# Removed exceptions from import re: Python3 CH 20171205
+import sys, re
 
-class AISUnpackingException(exceptions.Exception):
+class AISUnpackingException(Exception):
     def __init__(self, lc, fieldname, value):
         self.lc = lc
         self.fieldname = fieldname
@@ -1058,16 +1069,13 @@ def packet_scanner(source,skiperr=False):
         if not line:
             return
             
-        # Parse the eE AIS prefix / date separately from the remainder of the incoming line, 
-        # conserve the prefix / date extracted. CH 20151104
-        dateloc = line.find("\\", line.find("\\")+1)
+        # Parse the date separately from the remainder of the incoming line, 
+        # conserve the first date extracted. CH 20150827
+        dateloc = line.find(" ")
         if (date == ""):
             date = line[0:dateloc]
-            # DEBUG -- Print located prefix
-            # print "Date and prefix located: " + date
-            # sys.stderr.write("Date and prefix located: " + date)
         line = line[dateloc+1:]
-
+            
         raw += line
         
         line = line.strip()
@@ -1121,7 +1129,8 @@ def packet_scanner(source,skiperr=False):
                     raise AISUnpackingException(lc, "checksum", crc)
             if csum != crc:
                 if skiperr:
-                    sys.stderr.write("%d: bad checksum %s, expecting %s: %s\n" % (lc, `crc`, csum, line.strip()))
+                    # Replaced backticks w/ repr CH 20171225 sys.stderr.write("%d: bad checksum %s, expecting %s: %s\n" % (lc, `crc`, csum, line.strip()))
+                    sys.stderr.write("%d: bad checksum %s, expecting %s: %s\n" % (lc, repr(crc), csum, line.strip()))
                     well_formed = False
                 else:
                     raise AISUnpackingException(lc, "checksum", crc)
@@ -1209,9 +1218,11 @@ def parse_ais_messages(source, scaled=False, skiperr=False, verbose=0):
             raise KeyboardInterrupt
         except GeneratorExit:
             raise GeneratorExit
-        except AISUnpackingException, e:
+        # Altered exception assignment for Python3 compatibility CH 20171225 except AISUnpackingException, e:
+        except AISUnpackingException as e:
             if skiperr:
-                sys.stderr.write("%s: %s\n" % (`e`, raw.strip().split()))
+                # Replaced backticks w/ repr CH 20171225 sys.stderr.write("%s: %s\n" % (`e`, raw.strip().split()))
+                sys.stderr.write("%s: %s\n" % (repr(e), raw.strip().split()))
                 continue
             else:
                 raise
@@ -1221,63 +1232,87 @@ def parse_ais_messages(source, scaled=False, skiperr=False, verbose=0):
             if skiperr:
                 continue
             else:
-                raise exc_type, exc_value, exc_traceback
+                # Altered exception raise for Python3 compatibility CH 20171225 raise exc_type, exc_value, exc_traceback
+                raise exc_value
                 
 # The rest is just sequencing and report generation.
+
+### map_similar_message_ids - Map message ids for messages sharing schemas to 
+# token giving a single output file.
+def map_similar_message_ids(inmessage):
+    
+    if(inmessage in (1,2,3)):
+        return "1_2_3"
+    elif(inmessage in (4,11)):
+        return "4_11"
+    elif(inmessage in (7,13)):
+        return "7_13"
+    else:
+        return str(inmessage)
+### end map_like_messages
+        
 
 if __name__ == "__main__":
     import sys, getopt
 
-    usage_msg = ("\nUsage: gpsd_ais_NM4_parsing.py -? -c -d -h -j -m -s -x -t {msgtypes} -f {inputfile} \n\n"
+    usage_msg = ("\nUsage: DMAS_TAIS_NM4_parsing.py -? -a -c -d -j -s -x -o {outdir,outfileprefix} -t {msgtypes} inputfile1 [inputfile2, etc.] \n\n"
         "-?: Display this usage message and exit \n"
+        "-a: Map similar message ids into the same output file (only valid if used with -o, ignored otherwise)\n"
         "-c: Report in pipe-delimited format \n"
         "-d: Dump in human-readable format (default) \n"
-        "-h: Output a histogram of type frequencies \n"
         "-j: Dump in JSON format \n"
-        "-m: Dump malformed packets as raw\n"
         "-s: Report AIS in scaled (i.e. unit-converted) form \n"
         "-x: Do not skip over decoding errors (instead halt / throw exception)\n"
-        "-t {msgtypes}: Filter for specific messagetypes, where {msgtypes} is a comma-separated list of types \n"
-        "-f {inputfile}: Input file to be read, where {inputfile} is the name of the file to be read (optionally, a globbable wildcard under Windows only). \n")
-    
-    try:
-        (options, arguments) = getopt.getopt(sys.argv[1:], "?scdhjmxt:f:")
-    except getopt.GetoptError, msg:
-        print "ais.py: " + str(msg)
-        raise SystemExit, 1
+        "-o {outdir outfileprefix}: Output data, 1 message type per output file under the directory outdir (directory must not exist), using file prefix outfileprefix.\n"
+        "-t {msgtypes}: Filter for specific messagetypes, where {msgtypes} is a comma-separated list of types \n\n"
+        "inputfile 1 [inputfile2, etc.] : Input files() to be read, where {inputfile} is the name of the file to be read (optionally, a globbable wildcard(s) under Windows only). \n\n"
+        "Known issues:\n"
+        " -Doesn't join parts A and B of Type 24 together (yet).\n"
+        " -Only handles the broadcast case of type 22. \n"
+        " -Message type 26 is presently unsupported. \n"
+        " -No support for IMO236 and IMO289 special messages in types 6 and 8 yet. \n\n"
+        " Decoding for 1-15, 18-21, and 24 have been tested against live data. \n"
+        " Decoding for 16-17, 22-23, and 25-27 have not. \n")
 
+    try:
+        (options, arguments) = getopt.getopt(sys.argv[1:], "?ascdhjxo:t:")
+    # Altered exception assignment for Python3 compatibility CH 20171225 except getopt.GetoptError, msg:
+    except getopt.GetoptError as msg:
+        
+        print("DMAS_TAIS_NM4_parsing.py: " + str(msg))
+        # Adjusted raise syntax for Python3 CH20171205 raise SystemExit, 1
+        raise SystemExit(1)
+
+    map_similar = False
     dsv = False
     dump = False
-    histogram = False
     json = False
     malformed = False
     scaled = False
+    specific_output = False
     types = []
     frequencies = {}
     skiperr = True
-    read_files = False
     infiles = ""
     
     for (switch, val) in options:
-        if switch == '-c':        # Report in DSV format rather than JSON
+        if switch == '-a':        # Merge output files based on message 
+            map_similar = True    # schema (only valid with -o).
+        elif switch == '-c':      # Report in DSV format rather than JSON
             dsv = True
-        elif switch == '-d':      # Dump in a more human-readable format
+        elif switch == '-d':      # Dump in a human-readable format (default, verbose)
             dump = True
-        elif switch == '-h':      # Make a histogram of type frequencies
-            histogram = True
         elif switch == '-j':      # Dump JSON
             json = True
-        elif switch == '-m':      # Dump malformed AIVDM/AIVDO packets raw
-            malformed = True
         elif switch == '-s':      # Report AIS in scaled form
             scaled = True
+        elif switch == '-o':      # Output to specified directory
+            specific_output = True
+            (outdir, outfileprefix) = val.split(",")
         elif switch == '-t':      # Filter for a comma-separated list of types
             types = map(int, val.split(","))
         elif switch == '-x':      # Do not skip decoding errors
             skiperr = False
-        elif switch == '-f':
-            read_files = True
-            infiles = val
         elif switch == '-?':
             print(usage_msg)
             quit()
@@ -1285,123 +1320,132 @@ if __name__ == "__main__":
             print("Error, unrecognized switch -- \"" + switch + "\"\n")
             print(usage_msg)
             quit()
-            
+
+    # Copy the input files fromt he remaining content of the argument 
+    # vector after parsing the switches.
+    infiles = arguments 
+    
     # If no input files are noted, break and display an usage message. CH 20150826
-    if read_files and len(infiles.strip()) < 1:
+    if len(infiles) < 1:
         print (usage_msg)
         quit()
         
-    if not dsv and not histogram and not json and not malformed:
+    # If necessary, and the output directory already exists, or is not 
+    # writable, break and display an usage message.
+    if specific_output:
+        if os.path.exists(outdir):  
+            print ("Error: Output directory exists.\n\n")
+            print (usage_msg)
+            quit()
+            
+        # Attempt to create the output directory required for the process.
+        try:
+            os.makedirs(outdir)
+        except:
+            print ("\nError: Unable to create output directory, aborting.\n\n")
+            print (usage_msg)
+            quit()
+        
+    # Set dump as the default output type if no other type is indicated.
+    if not dsv and not json:
         dump = True
             
-    # If an input file was not specified, anticipate streamed input via stdin.
-    if not read_files:
-        try:
-            # Adjusted code to accomodate date in return value. CH 20150826
-            for (raw, parsed, bogon, date) in parse_ais_messages(sys.stdin, scaled, skiperr, 0):
-                msgtype = parsed[0][1]
-                if types and msgtype not in types:
-                    continue
-                if (bogon and malformed):
-                    sys.stdout.write(raw)
-                if not bogon:
-                    if json:
-                        def quotify(x):
-                            if type(x) == type(""):
-                                return '"' + str(x) + '"'
-                            else:
-                                return str(x)
-                        #Inserted date into output format. CH 20150826
-                        print "{\"date\":" + date + "," + ",".join(map(lambda x: '"' + x[0].name + '":' + quotify(x[1]), parsed)) + "}"
-                    elif dsv:
-                        #Inserted date into output format. CH 20150826
-                        print date + "|" + "|".join(map(lambda x: str(x[1]), parsed))
-                    elif histogram:
-                        key = "%02d" % msgtype
-                        frequencies[key] = frequencies.get(key, 0) + 1
-                        if msgtype == 6 or msgtype == 8:
-                            dac = 0; fid = 0
-                            if msgtype == 8:
-                                dac = parsed[3][1]
-                                fid = parsed[4][1]
-                            elif msgtype == 6:
-                                dac = parsed[6][1]
-                                fid = parsed[7][1]
-                            key = "%02d_%04d_%02d" % (msgtype, dac, fid)
-                            frequencies[key] = frequencies.get(key, 0) + 1
-                    elif dump:
-                        #Inserted date into output format. CH 20150826
-                        print "%-25s: %s" % ("Date", date)
-                        for (inst, value) in parsed:
-                            print "%-25s: %s" % (inst.legend, value)
-                        print "%%"
-                sys.stdout.flush()
-            if histogram:
-                keys = frequencies.keys()
-                keys.sort()
-                for msgtype in keys:
-                    print "%-33s\t%d" % (msgtype, frequencies[msgtype])
-        except KeyboardInterrupt:
-            pass
-            
-    # If a file reference is passed as an argument iterate over and process. CH 20150826
-    else:
-    
-        # Attempt wildcard expansion on any input file specified. CH 20150826
-        for in_filename in glob(infiles):
+    # Validate that the input files exist.
+    for in_fileref in infiles:
+        for in_filename in glob(in_fileref):
+            if not os.path.isfile(in_fileref):
+                print ("Input file (" + in_fileref + ")not found.\n")
+                print (usage_string)
+                quit()
+
+    # Attempt expansion on any input file references. CH 20150826
+    for in_fileref in infiles:
+        for in_filename in glob(in_fileref):
         
             # Open the current file. NOTE: No sanity checking is performed 
             # here, inputs are assumed to contain AIS with single leading date
             # value per ONC format. CH 20150826
             with open(in_filename, 'r') as curr_file:
             
-                # Adjusted to accomodate date in retval. CH 20150826
-                for (raw, parsed, bogon, date) in parse_ais_messages(curr_file, scaled, skiperr, 0):
-                    msgtype = parsed[0][1]
-                    if types and msgtype not in types:
-                        continue
-                    if (bogon and malformed):
-                        sys.stdout.write(raw)
-                    if not bogon:
-                        if json:
-                            def quotify(x):
-                                if type(x) == type(""):
-                                    return '"' + str(x) + '"'
-                                else:
-                                    return str(x)
-                            #Inserted date into output format. CH 20150826
-                            print "{\"date\":" + date + "," + ",".join(map(lambda x: '"' + x[0].name + '":' + quotify(x[1]), parsed)) + "}"
-                        elif dsv:
-                            #Inserted date into output format. CH 20150826
-                            print date + "|" + "|".join(map(lambda x: str(x[1]), parsed))
-                        elif histogram:
-                            key = "%02d" % msgtype
-                            frequencies[key] = frequencies.get(key, 0) + 1
-                            if msgtype == 6 or msgtype == 8:
-                                dac = 0; fid = 0
-                                if msgtype == 8:
-                                    dac = parsed[3][1]
-                                    fid = parsed[4][1]
-                                elif msgtype == 6:
-                                    dac = parsed[6][1]
-                                    fid = parsed[7][1]
-                                key = "%02d_%04d_%02d" % (msgtype, dac, fid)
-                                frequencies[key] = frequencies.get(key, 0) + 1
-                        elif dump:
-                            #Inserted date into output format.
-                            print "%-25s: %s" % ("Date", date)
-                            for (inst, value) in parsed:
-                                print "%-25s: %s" % (inst.legend, value)
-                            print "%%"
-                    sys.stdout.flush()
-                    
-        # If histogram output is specified, calculate over all input files 
-        # specified. CH 20150826
-        if histogram:
-            keys = frequencies.keys()
-            keys.sort()
-            for msgtype in keys:
-                print "%-33s\t%d" % (msgtype, frequencies[msgtype])
+                # If a specific output location was not indicated, output to standard out.
+                if (not specific_output):
+            
+                    # Adjusted to accomodate date in retval. CH 20150826
+                    for (raw, parsed, bogon, date) in parse_ais_messages(curr_file, scaled, skiperr, 0):
+                        
+                        msgtype = parsed[0][1]
+                        # Skip types not of interest.
+                        if types and msgtype not in types:
+                            continue
+
+                        # Sanity check avoiding bad records (should always pass, bad records are trapped in parse_ais_messages).
+                        if not bogon:
+                            if json:
+                                def quotify(x):
+                                    if type(x) == type(""):
+                                        return '"' + str(x) + '"'
+                                    else:
+                                        return str(x)
+                                #Inserted date into output format. CH 20150826
+                                print ("{\"date\":" + date + "," + ",".join(map(lambda x: '"' + x[0].name + '":' + quotify(x[1]), parsed)) + "}")
+                            elif dsv:
+                                #Inserted date into output format. CH 20150826
+                                print (date + "|" + "|".join(map(lambda x: str(x[1]), parsed)))
+                            elif dump:
+                                #Insert date into output format.
+                                print ("%-25s: %s" % ("Date", date))
+                                for (inst, value) in parsed:
+                                    print ("%-25s: %s" % (inst.legend, value))
+                                print ("%%")
+                        sys.stdout.flush()
+                        
+                else:
+
+                    for (raw, parsed, bogon, date) in parse_ais_messages(curr_file, scaled, skiperr, 0):
+                        
+                        msgtype = parsed[0][1]
+                        # Skip types not of interest.
+                        if types and msgtype not in types:
+                            continue
+
+                        # Sanity check avoiding bad records (should always pass, bad records are trapped in parse_ais_messages).
+                        if not bogon:
+                            
+                            # If similar messages are to be mapped into a single output, generate the 
+                            # proper token, otherwise cast the message id to string.
+                            if map_similar:
+                                message_token = map_similar_message_ids(msgtype)
+                            else:
+                                message_token = str(msgtype)
+                            
+                            # Open the appropriate outfile depending on the message type indicated.
+                            try:
+                                out_datafile = open(outdir + sep + outfileprefix + "msg" + message_token + ".txt", 'a')
+                            except IOError:
+                                print ("Error opening output file: " + outdir + sep + outfileprefix + "msg" + strmessage_token + ".txt" + "\n")
+                                quit()
+                            
+                            if json:
+                                def quotify(x):
+                                    if type(x) == type(""):
+                                        return '"' + str(x) + '"'
+                                    else:
+                                        return str(x)
+                                        
+                                out_datafile.write("{\"date\":" + date + "," + ",".join(map(lambda x: '"' + x[0].name + '":' + quotify(x[1]), parsed)) + "}" + "\n")
+                                
+                            elif dsv:
+                                #Inserted date into output format. CH 20150826
+                                out_datafile.write(date + "|" + "|".join(map(lambda x: str(x[1]), parsed)) + "\n")
+                                
+                            elif dump:
+                                #Insert date into output format.
+                                out_datafile.write("%-25s: %s" % ("Date", date) + "\n")
+                                for (inst, value) in parsed:
+                                    out_datafile.write("%-25s: %s" % (inst.legend, value) + "\n")
+                                out_datafile.write("%%" + "\n")
+                                
+                            out_datafile.close()
 
 # End
 

@@ -16,7 +16,7 @@ gdal.UseExceptions()
 
 # If the wrong number of arguments is provided, display an usage message.
 if (len(sys.argv) < 4):
-    print 'Usage: tracks_into_grids_gdal.py inputtrackfilename inputgridfilename outputintfilename ... \n Reads the specified track and grid (shapefile) filenames, and calculates the identity operation from the tracks into the grids. (output of divide_tracks.py). Generates a shapefile of the result under outputintfilename. Developed in support of the NEMES project (http://www.nemesproject.com/).\n'
+    print('Usage: tracks_into_grids_gdal.py inputtrackfilename inputgridfilename outputintfilename ... \n Reads the specified track and grid (shapefile) filenames, and calculates the identity operation from the tracks into the grids. (output of divide_tracks.py). Generates a shapefile of the result under outputintfilename. Developed in support of the NEMES project (http://www.nemesproject.com/).\n')
     quit()
 
 # Copy the input/output filenames from the argument vector.
@@ -39,7 +39,7 @@ grid_srs = grid_layer.GetSpatialRef()
 #if line_srs.ExportToWkt() != grid_srs.ExportToWkt():
 if not line_srs.IsSame(grid_srs):
     #print 'Cannot safely cut tracks into grids for disparate SRS:\nLine:' + to_string(line_srs) + '\nGrid:' + to_string(grid_srs) + '\n'
-    print 'Cannot safely cut tracks into grids for disparate SRS:\nLine:' + line_srs.ExportToWkt() + '\nGrid:' + grid_srs.ExportToWkt() + '\n'
+    print('Cannot safely cut tracks into grids for disparate SRS:\nLine:' + line_srs.ExportToWkt() + '\nGrid:' + grid_srs.ExportToWkt() + '\n')
 
     # Destroy the data sources to force close.
     line_data_source.Destroy()
@@ -53,7 +53,7 @@ driver = ogr.GetDriverByName("ESRI Shapefile")
 out_data_source = driver.CreateDataSource(out_int_directory)
 
 if out_data_source is None:
-    print "\nError encountered when opening output folder: " + out_int_directory + "\\" + " \nAborting."
+    print("\nError encountered when opening output folder: " + out_int_directory + "\\" + " \nAborting.")
     quit()
 
 # Create the output layer.
@@ -63,7 +63,7 @@ output_layer = out_data_source.CreateLayer(out_int_filename, line_srs, ogr.wkbMu
 # Assuming multilinestring, as some intersections might be multipart
 
 if output_layer is None:
-    print "\nError encountered when creating output shapefile: " + out_int_directory + "\\" + out_int_filename + " \nAborting."
+    print("\nError encountered when creating output shapefile: " + out_int_directory + "\\" + out_int_filename + " \nAborting.")
     quit()
 
 # Copy fields from the input line layer into the output layer.
@@ -94,7 +94,7 @@ for line_fid in range(0, line_layer.GetFeatureCount()):
     xmin, xmax, ymin, ymax = line_geometry.GetEnvelope()
     index.insert(line_fid, (xmin, xmax, ymin, ymax))
 
-print "Index created.\n"
+print("Index created.\n")
     
 # Compute the total number of grid features to process:
 grid_feature_count = grid_layer.GetFeatureCount()
@@ -116,58 +116,62 @@ for grid_fid in range(0, grid_feature_count):
         line_feature = line_layer.GetFeature(line_fid)
         line_geometry = line_feature.GetGeometryRef()
         
-        # Testing the intersect_result <> None gives false (trivial?) 
+        # Testing the intersect_result != None gives false (trivial?) 
         # intersections, while testing via .Intersects() appears to give 
         # the expected result.
         if grid_geometry.Intersects(line_geometry):
         
-            #DEBUG print '{} intersects {}'.format(grid_fid, line_fid)
+            #DEBUG 
+            print('{} intersects {}'.format(grid_fid, line_fid))
             
             # Compute the intersection result between the grid and line geometries.
             intersect_result = line_geometry.Intersection(grid_geometry)
+
+            # Confirm that intersect result is not None
+            if not (intersect_result is None):
             
-            # Could split lines where the geometry is multilinestring, if necessary.
-            # If any geometrycollections are noted, we will need to strip non-linear 
-            # components.
+                #DEBUG
+                print('{} intersects {}'.format(grid_fid, line_fid))
             
-            # Determine the type of geometry in the intersection.
-            intersect_geometry_type = intersect_result.GetGeometryName()
-            if (intersect_result.GetGeometryType() <> ogr.wkbLineString) and (intersect_result.GetGeometryType() <> ogr.wkbMultiLineString):
-                print 'Intersection type is: ' + str(intersect_geometry_type)
+                # Could split lines where the geometry is multilinestring, if necessary.
+                # If any geometrycollections are noted, we will need to strip non-linear 
+                # components.
                 
-                if intersect_result.GetGeometryType() == ogr.wkbGeometryCollection:
-                    print "Geometry collection expansion: " + str(intersect_result.GetGeometryCount()) + "Geometries"
-                    for i in range(0, intersect_result.GetGeometryCount()):
-                        g = intersect_result.GetGeometryRef(i)
-                        print "Component geometry: " + g.GetGeometryName()
-            
-            # Generate a new output feature.
-            output_feature = ogr.Feature(output_defn)
+                # Determine the type of geometry in the intersection.
+                intersect_geometry_type = intersect_result.GetGeometryName()
+                if (intersect_result.GetGeometryType() != ogr.wkbLineString) and (intersect_result.GetGeometryType() != ogr.wkbMultiLineString):
+                    print('Intersection type is: ' + str(intersect_geometry_type))
+                    
+                    if intersect_result.GetGeometryType() == ogr.wkbGeometryCollection:
+                        print("Geometry collection expansion: " + str(intersect_result.GetGeometryCount()) + "Geometries")
+                        for i in range(0, intersect_result.GetGeometryCount()):
+                            g = intersect_result.GetGeometryRef(i)
+                            print("Component geometry: " + g.GetGeometryName())
+                
+                # Generate a new output feature.
+                output_feature = ogr.Feature(output_defn)
 
-            # Copy the field values from the line layer.
-            for i in range(line_defn.GetFieldCount()):
-                output_feature.SetField(line_defn.GetFieldDefn(i).GetNameRef(), line_feature.GetField(i))
-                #DEBUG print "Field name: " + line_defn.GetFieldDefn(i).GetNameRef() + " value: " + str(line_feature.GetField(i))
+                # Copy the field values from the line layer.
+                for i in range(line_defn.GetFieldCount()):
+                    output_feature.SetField(line_defn.GetFieldDefn(i).GetNameRef(), line_feature.GetField(i))
+                    #DEBUG print "Field name: " + line_defn.GetFieldDefn(i).GetNameRef() + " value: " + str(line_feature.GetField(i))
 
-            # Copy the id field value from the grid layer.
-            output_feature.SetField("Grid_Id", grid_feature.GetField("Id"))
+                # Copy the id field value from the grid layer.
+                output_feature.SetField("Grid_Id", grid_feature.GetField("Id"))
+                
+                #DEBUG print "Field name: Grid_Id value: " + str(grid_feature.GetField("Id"))
+                
+                # Assign the intersection geometry to the output.
+                output_feature.SetGeometry(intersect_result)
+                
+                # Insert the output feature into the output layer, then reclaim assigned memory.
+                output_layer.CreateFeature(output_feature)
+                output_feature.Destroy()
             
-            #DEBUG print "Field name: Grid_Id value: " + str(grid_feature.GetField("Id"))
-            
-            # Assign the intersection geometry to the output.
-            output_feature.SetGeometry(intersect_result)
-            
-            # Insert the output feature into the output layer, then reclaim assigned memory.
-            output_layer.CreateFeature(output_feature)
-            output_feature.Destroy()
-            
-        #Removed clause from original code snippet -- was in error 
-        #else:
-            #print 'Noted grid {} and line {} fids equal'.format(grid_fid, line_fid)
             
     # Provide periodic status updates.
     if grid_fid % 1000 == 0:
-        print "Processing grids: " + str(grid_fid) + " of " + str(grid_feature_count)
+        print("Processing grids: " + str(grid_fid) + " of " + str(grid_feature_count))
         
 # Destroy the data sources to force close.
 line_data_source.Destroy()

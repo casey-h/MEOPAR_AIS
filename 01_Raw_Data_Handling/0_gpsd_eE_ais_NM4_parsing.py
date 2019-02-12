@@ -1,9 +1,8 @@
 #!/usr/bin/env python
 #
 # A Python AIVDM/AIVDO decoder -- edits by CH (2015-08), tailoring code specifically 
-# for AIS datafiles as published via dmas.uvic.ca (but which conform to the 
-# anticipated message format as output by most units). Most critically, added handling
-# for per-line date prefixes to !AIVDO strings, and adjusted command line flags to
+# for AIS NM4 datafiles as published by exactEarth. Includes handling of odd escaping
+# presented in prefix to !AIVDO strings, and adjusted command line flags to
 # accept input files rather than drawing all input from stdin. Also added descriptive
 # help message, w/ flag descriptions, called by -? flag. Most edits are denoted with
 # comments and tagged 'CH' + the date in yyyymmdd format.
@@ -834,7 +833,8 @@ type24b = (
              validator=lambda n: n >= 0 and n <= 99,
              formatter=ship_type_legends),
     bitfield("vendorid",     42, 'string',   None, "Vendor ID"),
-    dispatch("mmsi", {0:type24b1, 1:type24b2}, lambda m: 1 if `m`[:2]=='98' else 0),
+    # Replaced backticks w/ repr CH 20171224 dispatch("mmsi", {0:type24b1, 1:type24b2}, lambda m: 1 if `m`[:2]=='98' else 0),
+    dispatch("mmsi", {0:type24b1, 1:type24b2}, lambda m: 1 if repr(m)[:2]=='98' else 0),
     )
 
 type24 = (
@@ -951,7 +951,8 @@ class BitVector:
     def extend_to(self, length):
         "Extend vector to given bitlength."
         if length > self.bitlen:
-            self.bits.extend([0]*((length - self.bitlen +7 )/8))
+            # Changed / to // for Python3 integer division CH 20171204 self.bits.extend([0]*((length - self.bitlen +7 )/8))
+            self.bits.extend([0]*((length - self.bitlen +7 )//8))
             self.bitlen = length
     def from_sixbit(self, data, pad=0):
         "Initialize bit vector from AIVDM-style six-bit armoring."
@@ -962,13 +963,15 @@ class BitVector:
                 ch -= 8
             for i in (5, 4, 3, 2, 1, 0):
                 if (ch >> i) & 0x01:
-                    self.bits[self.bitlen/8] |= (1 << (7 - self.bitlen % 8))
+                    # Changed / to // for Python3 integer division CH 20171204 self.bits[self.bitlen/8] |= (1 << (7 - self.bitlen % 8))
+                    self.bits[self.bitlen//8] |= (1 << (7 - self.bitlen % 8))
                 self.bitlen += 1
         self.bitlen -= pad
     def ubits(self, start, width):
         "Extract a (zero-origin) bitfield from the buffer as an unsigned int."
         fld = 0
-        for i in range(start/BITS_PER_BYTE, (start + width + BITS_PER_BYTE - 1) / BITS_PER_BYTE):
+        # Changed / to // for Python3 integer division CH 20171204 for i in range(start/BITS_PER_BYTE, (start + width + BITS_PER_BYTE - 1) / BITS_PER_BYTE):
+        for i in range(start//BITS_PER_BYTE, (start + width + BITS_PER_BYTE - 1) // BITS_PER_BYTE):
             fld <<= BITS_PER_BYTE
             fld |= self.bits[i]
         end = (start + width) % BITS_PER_BYTE
@@ -988,9 +991,12 @@ class BitVector:
         "Used for dumping binary data."
         return str(self.bitlen) + ":" + "".join(map(lambda d: "%02x" % d, self.bits[:(self.bitlen + 7)/8]))
 
-import sys, exceptions, re
 
-class AISUnpackingException(exceptions.Exception):
+# Exceptions no longer need be imported for python3 CH20171204 import sys, exceptions, re
+import sys, re
+
+# Exceptions no longer separate class for Python3 CH20171204 class AISUnpackingException(exceptions.Exception):
+class AISUnpackingException(Exception):
     def __init__(self, lc, fieldname, value):
         self.lc = lc
         self.fieldname = fieldname
@@ -1059,13 +1065,16 @@ def packet_scanner(source,skiperr=False):
         if not line:
             return
             
-        # Parse the date separately from the remainder of the incoming line, 
-        # conserve the first date extracted. CH 20150827
-        dateloc = line.find(" ")
+        # Parse the eE AIS prefix / date separately from the remainder of the incoming line, 
+        # conserve the prefix / date extracted. CH 20151104
+        dateloc = line.find("\\", line.find("\\")+1)
         if (date == ""):
             date = line[0:dateloc]
+            # DEBUG -- Print located prefix
+            # print "Date and prefix located: " + date
+            # sys.stderr.write("Date and prefix located: " + date)
         line = line[dateloc+1:]
-            
+
         raw += line
         
         line = line.strip()
@@ -1119,7 +1128,8 @@ def packet_scanner(source,skiperr=False):
                     raise AISUnpackingException(lc, "checksum", crc)
             if csum != crc:
                 if skiperr:
-                    sys.stderr.write("%d: bad checksum %s, expecting %s: %s\n" % (lc, `crc`, csum, line.strip()))
+                    # Replaced backticks w/ repr CH 20171224 sys.stderr.write("%d: bad checksum %s, expecting %s: %s\n" % (lc, `crc`, csum, line.strip()))
+                    sys.stderr.write("%d: bad checksum %s, expecting %s: %s\n" % (lc, repr(crc), csum, line.strip()))
                     well_formed = False
                 else:
                     raise AISUnpackingException(lc, "checksum", crc)
@@ -1207,9 +1217,11 @@ def parse_ais_messages(source, scaled=False, skiperr=False, verbose=0):
             raise KeyboardInterrupt
         except GeneratorExit:
             raise GeneratorExit
-        except AISUnpackingException, e:
+        # Altered exception assignment for Python3 compatibility CH 20171224 except AISUnpackingException, e:
+        except AISUnpackingException as e:
             if skiperr:
-                sys.stderr.write("%s: %s\n" % (`e`, raw.strip().split()))
+                # Replaced backticks w/ repr CH 20171224 sys.stderr.write("%s: %s\n" % (`e`, raw.strip().split()))
+                sys.stderr.write("%s: %s\n" % (repr(e), raw.strip().split()))
                 continue
             else:
                 raise
@@ -1219,7 +1231,8 @@ def parse_ais_messages(source, scaled=False, skiperr=False, verbose=0):
             if skiperr:
                 continue
             else:
-                raise exc_type, exc_value, exc_traceback
+                # Adjust re-raise to python3 compatible syntax CH 20171204 raise exc_type, exc_value, exc_traceback
+                raise exc_value
                 
 # The rest is just sequencing and report generation.
 
@@ -1240,9 +1253,12 @@ if __name__ == "__main__":
     
     try:
         (options, arguments) = getopt.getopt(sys.argv[1:], "?scdhjmxt:f:")
-    except getopt.GetoptError, msg:
-        print "ais.py: " + str(msg)
-        raise SystemExit, 1
+    # Adjust exception name assignment to Python3 convention CH20171204 except getopt.GetoptError, msg:
+    except getopt.GetoptError as msg:
+        # Adjust to print function / python3 CH 20171204 print "ais.py: " + str(msg)
+        print("ais.py: " + str(msg))
+        # Adjusted raise syntax for Python3 CH20171204 raise SystemExit, 1
+        raise SystemExit(1)
 
     dsv = False
     dump = False
@@ -1310,10 +1326,12 @@ if __name__ == "__main__":
                             else:
                                 return str(x)
                         #Inserted date into output format. CH 20150826
-                        print "{\"date\":" + date + "," + ",".join(map(lambda x: '"' + x[0].name + '":' + quotify(x[1]), parsed)) + "}"
+                        # Adjust to print function / python3 CH 20171204 print "{\"date\":" + date + "," + ",".join(map(lambda x: '"' + x[0].name + '":' + quotify(x[1]), parsed)) + "}"
+                        print("{\"date\":" + date + "," + ",".join(map(lambda x: '"' + x[0].name + '":' + quotify(x[1]), parsed)) + "}")
                     elif dsv:
                         #Inserted date into output format. CH 20150826
-                        print date + "|" + "|".join(map(lambda x: str(x[1]), parsed))
+                        # Adjust to print function / python3 CH 20171204 print date + "|" + "|".join(map(lambda x: str(x[1]), parsed))
+                        print(date + "|" + "|".join(map(lambda x: str(x[1]), parsed)))
                     elif histogram:
                         key = "%02d" % msgtype
                         frequencies[key] = frequencies.get(key, 0) + 1
@@ -1329,16 +1347,20 @@ if __name__ == "__main__":
                             frequencies[key] = frequencies.get(key, 0) + 1
                     elif dump:
                         #Inserted date into output format. CH 20150826
-                        print "%-25s: %s" % ("Date", date)
+                        # Adjust to print function / python3 CH 20171204 print "%-25s: %s" % ("Date", date)
+                        print("%-25s: %s" % ("Date", date))
                         for (inst, value) in parsed:
-                            print "%-25s: %s" % (inst.legend, value)
-                        print "%%"
+                            # Adjust to print function / python3 CH 20171204 print "%-25s: %s" % (inst.legend, value)
+                             print("%-25s: %s" % (inst.legend, value))
+                        # Adjust to print function / python3 CH 20171204 print "%%"
+                        print("%%")
                 sys.stdout.flush()
             if histogram:
                 keys = frequencies.keys()
                 keys.sort()
                 for msgtype in keys:
-                    print "%-33s\t%d" % (msgtype, frequencies[msgtype])
+                    # Adjust to print function / python3 CH 20171204 print "%-33s\t%d" % (msgtype, frequencies[msgtype])
+                    print("%-33s\t%d" % (msgtype, frequencies[msgtype]))
         except KeyboardInterrupt:
             pass
             
@@ -1368,10 +1390,12 @@ if __name__ == "__main__":
                                 else:
                                     return str(x)
                             #Inserted date into output format. CH 20150826
-                            print "{\"date\":" + date + "," + ",".join(map(lambda x: '"' + x[0].name + '":' + quotify(x[1]), parsed)) + "}"
+                            # Adjust to print function / python3 CH 20171204 print "{\"date\":" + date + "," + ",".join(map(lambda x: '"' + x[0].name + '":' + quotify(x[1]), parsed)) + "}"
+                            print("{\"date\":" + date + "," + ",".join(map(lambda x: '"' + x[0].name + '":' + quotify(x[1]), parsed)) + "}")
                         elif dsv:
                             #Inserted date into output format. CH 20150826
-                            print date + "|" + "|".join(map(lambda x: str(x[1]), parsed))
+                            # Adjust to print function / python3 CH 20171204 print date + "|" + "|".join(map(lambda x: str(x[1]), parsed))
+                            print(date + "|" + "|".join(map(lambda x: str(x[1]), parsed)))
                         elif histogram:
                             key = "%02d" % msgtype
                             frequencies[key] = frequencies.get(key, 0) + 1
@@ -1387,10 +1411,13 @@ if __name__ == "__main__":
                                 frequencies[key] = frequencies.get(key, 0) + 1
                         elif dump:
                             #Inserted date into output format.
-                            print "%-25s: %s" % ("Date", date)
+                            # Adjust to print function / python3 CH 20171204 print "%-25s: %s" % ("Date", date)
+                            print("%-25s: %s" % ("Date", date))
                             for (inst, value) in parsed:
-                                print "%-25s: %s" % (inst.legend, value)
-                            print "%%"
+                                # Adjust to print function / python3 CH 20171204 print "%-25s: %s" % (inst.legend, value)
+                                print("%-25s: %s" % (inst.legend, value))
+                            # Adjust to print function / python3 CH 20171204 print "%%"
+                            print("%%")
                     sys.stdout.flush()
                     
         # If histogram output is specified, calculate over all input files 
@@ -1399,7 +1426,8 @@ if __name__ == "__main__":
             keys = frequencies.keys()
             keys.sort()
             for msgtype in keys:
-                print "%-33s\t%d" % (msgtype, frequencies[msgtype])
+                # Adjust to print function / python3 CH 20171204 print "%-33s\t%d" % (msgtype, frequencies[msgtype])
+                print("%-33s\t%d" % (msgtype, frequencies[msgtype]))
 
 # End
 
