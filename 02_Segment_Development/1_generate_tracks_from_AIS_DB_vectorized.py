@@ -850,9 +850,13 @@ def segment_thresholded(in_AIS_dataframe, track_speed_threshold, track_separatio
 
         # Append any points to the discard array.
         if(first_pts_AIS_array_nodups.shape[0] > 0):
+            
             out_discarded_AIS_items.extend(first_pts_AIS_array_nodups)
             out_discarded_AIS_items_reason.extend(["Not enough points for segmentation"] * first_pts_AIS_array_nodups.shape[0])
-            out_discarded_AIS_items.extend(second_pts_AIS_array_nodups[-1])
+
+            # Amended 2019-04-01 -- can't extend without wrapping record as a list 
+            # out_discarded_AIS_items.extend(second_pts_AIS_array_nodups[-1])
+            out_discarded_AIS_items.extend([second_pts_AIS_array_nodups[-1]])
             out_discarded_AIS_items_reason.extend(["Not enough points for segmentation"] * 1)
 
         # Merge the data and labels from the lists of discarded and preserved records into
@@ -1154,10 +1158,13 @@ def generate_threshold_tracks(source_dataframe, segment_split_directory, segment
     all_generated_segments_array = None
 
     # Establish values to track the number of points discarded as each of
-    # duplicate points, time threshold exceeded and stranded points
+    # duplicate, time threshold exceeded, stranded, too few per segment
+    # and overspeed
     dup_discards = 0
     time_discards = 0
     stranded_discards = 0
+    few_points_discards = 0
+    overspeed_discards = 0
 
     # Establish a value to track the total number of input points.
     total_points = 0
@@ -1220,8 +1227,8 @@ def generate_threshold_tracks(source_dataframe, segment_split_directory, segment
                 # Calculate the number of various discard types from the records returned.
                 dup_discards = dup_discards + len(np.where(discards_array['reason'] == "Duplicate point/time (pt1's)")[0])
                 stranded_discards = stranded_discards + len(np.where(discards_array['reason'] == "Stranded stop")[0])
-                few_points_discards = stranded_discards + len(np.where(discards_array['reason'] == "Not enough points for segmentation")[0])
-                overspeed_discards = stranded_discards + len(np.where(discards_array['reason'] == "Excess speed")[0])
+                few_points_discards = few_points_discards + len(np.where(discards_array['reason'] == "Not enough points for segmentation")[0])
+                overspeed_discards = overspeed_discards + len(np.where(discards_array['reason'] == "Excess speed")[0])
 
             # If there are any current segment records, incorporate them into the overall list.
             if(all_generated_segments_array is None or (len(all_generated_segments_array) == 0)):
