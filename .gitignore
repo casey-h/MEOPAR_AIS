@@ -8,6 +8,9 @@
 # Any old files under any folder.
 *old/
 
+# Any builds (cython, generally) under any folder.
+*build/
+
 #shapefile.py, used for testing / running scripts.
 shapefile.py
 shapefile.pyc
