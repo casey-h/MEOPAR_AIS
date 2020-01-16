@@ -2,7 +2,7 @@
 
 A collection of Python scripts for processing AIS data in support of the MEOPAR (meopar.ca) - exactEarth (exactearth.ca) - Dalhousie (bigdata.cs.dal.ca) Satellite AIS data partnership / initiative. Code is a work in progress and should be considered functional, yet in flux.
 
-<b>01_Raw_Data_Handling</b> - Scripts for processing raw (NM4) and flat (csv) AIS datafiles
+<b>01_Raw_Data_Handling</b> - Scripts for processing raw (NM4) and flat (csv) AIS datafiles:
 
 0_DMAS_TAIS_NM4_parsing.py - Parsing script for ONC / DMAS NM4 flat files into csv.
 0_gpsd_eE_ais_NM4_parsing.py - Parsing script for translating exactEarth formatted NM4 flat files into csv.
@@ -17,7 +17,7 @@ Replaces: Parse_eE_AIS_PG_Exports_to_csv.py
 split_ONC_AIS_for_PG_base_table_w_parsing.py - Script to parse csv AIS data as provided by Ocean Networks Canada DMAS data service into compact form to match local Postgres Schema.
 split_tT_AIS_for_PG_base_table_w_parsing.py - Script to parse csv AIS data as provided by Dr. Chris Taggart Terrestrial AIS network into compact form to match local Postgres Schema.
 
-02_Segment_Development - Scripts for building geospatial segment and trajectory representations from AIS position data.
+<b>02_Segment_Development</b> - Scripts for building geospatial segment and trajectory representations from AIS position data:
 
 0_split_eE_AIS_pre_tracks.py - Soon to be obsoleted. see 1_generate_tracks_from_AIS_DB_vectorized.py
 0_split_NM4_Sourced_AIS_pre_tracks.py - Soon to be obsoleted. see 1_generate_tracks_from_AIS_DB_vectorized.py
@@ -25,7 +25,7 @@ split_tT_AIS_for_PG_base_table_w_parsing.py - Script to parse csv AIS data as pr
 
 1_generate_tracks_from_AIS_DB_vectorized.py - New aggregate script, performs functionality of old 1_, 2_ and 3_ scripts together. Starting with a file of exported SAIS data from the Postgres database instance, splits it on type, then vessel, generates either segments or tracklines and finally creates a GIS representation of same. Can currently load data from Postgres DB or csv; eventually will also accept NM4 data.
 
-03_Grid_Calculations
+<b>03_Grid_Calculations</b> - Scripts to mangle tracks into grid based representations
 
 0_create_grids_gdal.py - A script to generate a regular grid, suitable for use in aggregation of tracks.
 
