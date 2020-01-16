@@ -22,3 +22,4 @@ shapefile.pyc
 01_Raw_Data_Handling/0c_CSA_TAIS_pre_parser.py
 01_Raw_Data_Handling/Message_8_Parser.py
 03_Grid_Calculations/tracks_into_grids_gdal_mp.py
+02_Segment_Development/1_generate_tracks_from_AIS_DB_vectorized.pyc
