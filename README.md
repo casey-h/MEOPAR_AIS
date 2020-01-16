@@ -2,7 +2,7 @@
 
 A collection of Python scripts for processing AIS data in support of the MEOPAR (meopar.ca) - exactEarth (exactearth.ca) - Dalhousie (bigdata.cs.dal.ca) Satellite AIS data partnership / initiative. Code is a work in progress and should be considered functional, yet in flux.
 
-01_Raw_Data_Handling - Scripts for processing raw (NM4) and flat (csv) AIS datafiles
+<b>01_Raw_Data_Handling</b> - Scripts for processing raw (NM4) and flat (csv) AIS datafiles
 
 0_DMAS_TAIS_NM4_parsing.py - Parsing script for ONC / DMAS NM4 flat files into csv.
 0_gpsd_eE_ais_NM4_parsing.py - Parsing script for translating exactEarth formatted NM4 flat files into csv.
@@ -20,12 +20,10 @@ split_tT_AIS_for_PG_base_table_w_parsing.py - Script to parse csv AIS data as pr
 02_Segment_Development - Scripts for building geospatial segment and trajectory representations from AIS position data.
 
 0_split_eE_AIS_pre_tracks.py - Soon to be obsoleted. see 1_generate_tracks_from_AIS_DB_vectorized.py
-0_split_NM4_Sourced_AIS_pre_tracks.py - Soon to be obsolete. see 1_generate_tracks_from_AIS_DB_vectorized.py
+0_split_NM4_Sourced_AIS_pre_tracks.py - Soon to be obsoleted. see 1_generate_tracks_from_AIS_DB_vectorized.py
 1_generate_tracks_from_TAIS_ONC.py - Soon to be obsoleted. Script to generate tracks from ONC formatted AIS data, will be incorporated into 1_generate_tracks_from_AIS_DB_vectorized.py.
 
-
 1_generate_tracks_from_AIS_DB_vectorized.py - New aggregate script, performs functionality of old 1_, 2_ and 3_ scripts together. Starting with a file of exported SAIS data from the Postgres database instance, splits it on type, then vessel, generates either segments or tracklines and finally creates a GIS representation of same. Can currently load data from Postgres DB or csv; eventually will also accept NM4 data.
-1_generate_tracks_from_AIS_DB_vectorized.pyc
 
 03_Grid_Calculations
 
